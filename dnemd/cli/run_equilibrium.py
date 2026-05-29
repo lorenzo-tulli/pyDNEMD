@@ -12,8 +12,8 @@ Usage:
 """
 
 import argparse
-from modules.config import Config
-from modules.equilibration import EquilibrationPipeline
+from dnemd.config import Config
+from dnemd.equilibration import EquilibrationPipeline
 
 def main():
     parser = argparse.ArgumentParser(description="Run GROMACS equilibration pipeline.")

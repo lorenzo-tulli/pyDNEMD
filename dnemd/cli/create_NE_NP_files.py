@@ -57,9 +57,9 @@ Usage:
 
 import argparse
 from pathlib import Path
-from modules.config import Config
-from modules.ne_np_setup import NESetup
-from modules.utils import get_logger, run
+from dnemd.config import Config
+from dnemd.ne_np_setup import NESetup
+from dnemd.utils import get_logger, run
 
 logger = get_logger("create_NE_NP_files")
 

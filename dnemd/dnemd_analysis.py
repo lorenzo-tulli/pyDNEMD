@@ -6,7 +6,7 @@ import numpy as np
 import MDAnalysis as mda
 from MDAnalysis.analysis import align
 from pathlib import Path
-from modules.utils import get_logger, ensure_dir
+from dnemd.utils import get_logger, ensure_dir
 
 logger = get_logger("dnemd_analysis")
 

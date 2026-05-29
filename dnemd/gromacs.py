@@ -4,7 +4,7 @@ All functions take an explicit gmx executable string so the caller
 controls whether to use gmx or gmx_mpi.
 """
 from pathlib import Path
-from modules.utils import run, run_piped, ensure_dir, copy_file, get_logger
+from dnemd.utils import run, run_piped, ensure_dir, copy_file, get_logger
 
 logger = get_logger("gromacs")
 

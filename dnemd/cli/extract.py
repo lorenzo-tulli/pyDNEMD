@@ -37,12 +37,12 @@ import os
 import sys
 from pathlib import Path
 
-from modules.config import Config
-from modules.trjdump import (
+from dnemd.config import Config
+from dnemd.trjdump import (
     TrajectoryDumper,
     DEFAULT_PS_TIMEPOINTS,
 )
-from modules.utils import get_logger
+from dnemd.utils import get_logger
 
 logger = get_logger("extract")
 

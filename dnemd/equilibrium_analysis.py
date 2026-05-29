@@ -3,9 +3,9 @@ Equilibrium simulation analysis: Cα RMSD and RMSF per run.
 """
 from pathlib import Path
 import numpy as np
-from modules.gromacs import trjconv_xtc, rms, rmsf
-from modules.analysis import parse_xvg
-from modules.utils import ensure_dir, get_logger
+from dnemd.gromacs import trjconv_xtc, rms, rmsf
+from dnemd.analysis import parse_xvg
+from dnemd.utils import ensure_dir, get_logger
 
 logger = get_logger("equilibrium_analysis")
 

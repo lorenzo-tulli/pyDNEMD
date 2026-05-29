@@ -3,7 +3,7 @@ Parse GROMACS XVG files and plot RMSD / RMSF.
 """
 import numpy as np
 from pathlib import Path
-from modules.utils import get_logger
+from dnemd.utils import get_logger
 
 logger = get_logger("analysis")
 

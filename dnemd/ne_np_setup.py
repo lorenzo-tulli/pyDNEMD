@@ -3,8 +3,8 @@ Create NE/NP simulation input files.
 """
 import shutil
 from pathlib import Path
-from modules.gromacs import make_index, trjconv_pbc, grompp
-from modules.utils import ensure_dir, get_logger, copy_file, run, run_piped
+from dnemd.gromacs import make_index, trjconv_pbc, grompp
+from dnemd.utils import ensure_dir, get_logger, copy_file, run, run_piped
 
 logger = get_logger("ne_np_setup")
 

@@ -2,7 +2,7 @@
 Frame extraction for DNEMD analysis.
 """
 from pathlib import Path
-from modules.utils import run_piped, ensure_dir, get_logger
+from dnemd.utils import run_piped, ensure_dir, get_logger
 
 logger = get_logger("trjdump")
 

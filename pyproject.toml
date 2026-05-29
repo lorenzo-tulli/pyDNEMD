@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydnemd"
+version = "0.1.0"
+description = "Driven Non-Equilibrium MD (D-NEMD) analysis pipeline for GROMACS simulations"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Lorenzo Tulli", email = "vi24769@bristol.ac.uk" },
+]
+keywords = ["molecular dynamics", "GROMACS", "DNEMD", "non-equilibrium", "computational chemistry"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "numpy",
+    "pyyaml",
+    "MDAnalysis",
+    "matplotlib",
+]
+
+[project.urls]
+Homepage = "https://github.com/lorenzo-tulli/pyDNEMD"
+Repository = "https://github.com/lorenzo-tulli/pyDNEMD"
+
+[project.scripts]
+dnemd-equilibrium         = "dnemd.cli.run_equilibrium:main"
+dnemd-extract             = "dnemd.cli.extract:main"
+dnemd-analyse-equilibrium = "dnemd.cli.analyse_equilibrium:main"
+dnemd-analyse-dnemd       = "dnemd.cli.analyse_dnemd:main"
+dnemd-create-ne-np        = "dnemd.cli.create_NE_NP_files:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dnemd*"]

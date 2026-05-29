@@ -2,8 +2,8 @@
 GROMACS equilibration pipeline as a class.
 """
 from pathlib import Path
-from modules.gromacs import grompp, mdrun, genrestr, sed_posres
-from modules.utils import ensure_dir, get_logger, copy_file
+from dnemd.gromacs import grompp, mdrun, genrestr, sed_posres
+from dnemd.utils import ensure_dir, get_logger, copy_file
 
 logger = get_logger("equilibration")
 

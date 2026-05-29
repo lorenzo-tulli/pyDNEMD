@@ -18,10 +18,10 @@ Usage:
 
 import argparse
 from pathlib import Path
-from modules.config import Config
-from modules.equilibrium_analysis import EquilibriumAnalyser
-from modules.analysis import plot_rmsd, plot_rmsf, write_summary_csv
-from modules.utils import ensure_dir, get_logger
+from dnemd.config import Config
+from dnemd.equilibrium_analysis import EquilibriumAnalyser
+from dnemd.analysis import plot_rmsd, plot_rmsf, write_summary_csv
+from dnemd.utils import ensure_dir, get_logger
 
 logger = get_logger("analyse_equilibrium")
 

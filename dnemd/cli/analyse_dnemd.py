@@ -26,14 +26,14 @@ from pathlib import Path
 
 import numpy as np
 
-from modules.config import Config
-from modules.dnemd_analysis import (
+from dnemd.config import Config
+from dnemd.dnemd_analysis import (
     collect_vectors,
     compute_statistics,
     write_stats_txt,
     write_bfactor_pdb,
 )
-from modules.utils import ensure_dir, get_logger
+from dnemd.utils import ensure_dir, get_logger
 
 logger = get_logger("analyse_dnemd")
 
