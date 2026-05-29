@@ -4,6 +4,12 @@ A Python package for running and analysing **Dynamical Non-Equilibrium MD (D-NEM
 
 ## Installation
 
+create and activate a new environment.
+```bash
+mamba create -n pyDNEMD python=3.11
+mamba activate pyDNEMD
+```
+Install the package.
 ```bash
 pip install git+https://github.com/lorenzo-tulli/pyDNEMD.git
 ```
