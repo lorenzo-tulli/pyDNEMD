@@ -21,10 +21,10 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 dependencies = [
-    "numpy",
-    "pyyaml",
-    "MDAnalysis",
-    "matplotlib",
+    "numpy>=1.20",
+    "pyyaml>=5.1",
+    "MDAnalysis>=2.0",
+    "matplotlib>=3.5",
 ]
 
 [project.urls]
