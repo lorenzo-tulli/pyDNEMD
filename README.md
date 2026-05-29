@@ -60,6 +60,8 @@ dnemd-analyse-dnemd --config my_config.yaml
 
 ## Python API
 
+If you want to embed this pipeline inside a larger Python workflow, add custom logic between steps, or automate things programmatically, you could follow this usage example.
+
 ```python
 from dnemd.config import Config
 from dnemd.equilibration import EquilibrationPipeline
