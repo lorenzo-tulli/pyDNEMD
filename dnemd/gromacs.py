@@ -3,6 +3,7 @@ Thin wrappers around GROMACS commands used by the pipeline.
 All functions take an explicit gmx executable string so the caller
 controls whether to use gmx or gmx_mpi.
 """
+import re
 from pathlib import Path
 from dnemd.utils import run, run_piped, ensure_dir, copy_file, get_logger
 
@@ -60,7 +61,7 @@ def genrestr(gmx: str, gro: str, ndx: str, out_itp: str,
 def sed_posres(itp_in: str, itp_out: str, fc_value: str):
     """Replace 1000 1000 1000 with fc_value in a posre ITP file."""
     text = Path(itp_in).read_text()
-    text = text.replace("1000  1000  1000", f"{fc_value} {fc_value} {fc_value}")
+    text = re.sub(r"1000\s+1000\s+1000", f"{fc_value}  {fc_value}  {fc_value}", text)
     Path(itp_out).write_text(text)
 
 
@@ -101,11 +102,11 @@ def trjconv_xtc(gmx: str, xtc_in: str, tpr: str, xtc_out: str,
 # RMSD / RMSF
 # ---------------------------------------------------------------------------
 
-def rms(gmx: str, xtc: str, tpr: str, out_xvg: str,
+def rms(gmx: str, xtc: str, ref: str, out_xvg: str,
         ref_group: str, fit_group: str, ndx: str = None,
         cwd: Path = None):
     cmd = [gmx, "rms",
-           "-f", xtc, "-s", tpr,
+           "-f", xtc, "-s", ref,
            "-o", out_xvg,
            "-tu", "ns"]
     if ndx:

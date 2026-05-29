@@ -56,7 +56,7 @@ def collect_vectors(
     return np.array(vectors)   # (N_samples, N_CA, 3)
 
 
-def compute_statistics(vectors_arr: np.ndarray):
+def compute_statistics(vectors_arr: np.ndarray, se_threshold: int = 1):
     avg_vectors  = np.mean(vectors_arr, axis=0)          # (N_CA, 3)
     avg_disp     = np.linalg.norm(avg_vectors, axis=1)   # (N_CA,)
     sd           = np.std(vectors_arr, axis=0)
@@ -68,8 +68,8 @@ def compute_statistics(vectors_arr: np.ndarray):
         ax**2 * se[:, 0]**2 + ay**2 * se[:, 1]**2 + az**2 * se[:, 2]**2
     )
 
-    adjusted_avg_disp    = np.where(avg_disp - se_mag > 0, avg_disp, 0.0)
-    adjusted_avg_vectors = np.where(np.abs(avg_vectors) - se > 0, avg_vectors, 0.0)
+    adjusted_avg_disp    = np.where(avg_disp - se_threshold * se_mag > 0, avg_disp, 0.0)
+    adjusted_avg_vectors = np.where(np.abs(avg_vectors) - se_threshold * se > 0, avg_vectors, 0.0)
 
     return avg_vectors, avg_disp, se, se_mag, adjusted_avg_disp, adjusted_avg_vectors
 
@@ -105,7 +105,6 @@ def write_bfactor_pdb(ref_pdb: str | Path, adjusted_avg_disp: np.ndarray,
     ca = u.select_atoms("name CA")
     ca_u = mda.Merge(ca)
     ca_u.add_TopologyAttr("tempfactors")
-    for atom, val in zip(ca_u.atoms, adjusted_avg_disp):
-        atom.tempfactor = float(val)
+    ca_u.atoms.tempfactors = adjusted_avg_disp
     ca_u.atoms.write(str(out_pdb))
     logger.info(f"B-factor PDB written: {out_pdb}")

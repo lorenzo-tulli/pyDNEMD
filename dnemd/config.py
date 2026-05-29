@@ -24,6 +24,15 @@ class Config:
     extract_start_ps:     int = 50000
     extract_frequency_ps: int = 5000
 
+    # Paths for frame extraction (used by dnemd-extract)
+    eq_sim_dir:          str = ""
+    ne_sim_dir:          str = ""
+    np_sim_dir:          str = ""
+    ne_index:            str = ""
+    extract_ns_start:    int = 50
+    extract_ns_end:      int = 250
+    extract_ns_interval: int = 5
+
     # DNEMD analysis
     time_points_ps: list = field(default_factory=lambda: [0, 10, 100, 1000, 5000])
     se_threshold:   int  = 1

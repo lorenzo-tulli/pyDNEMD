@@ -94,7 +94,7 @@ class EquilibriumAnalyser:
         rms(
             gmx=self.cfg.gmx,
             xtc=str(xtc_pbc),
-            tpr=str(self.em_dir / "em.gro"),
+            ref=str(self.em_dir / "em.gro"),
             out_xvg=str(self.rmsd_xvg),
             ref_group="C-alpha",
             fit_group="C-alpha",
