@@ -38,3 +38,6 @@ Thumbs.db
 *.log
 *.mdp
 \#*
+
+# Allow MDP templates to be tracked
+!templates/*.mdp
