@@ -67,7 +67,7 @@ class TrajectoryDumper:
 
     def _out_dir(self, run: int, ns: int) -> Path:
         return ensure_dir(
-            self.trjdump_root / f"{self.leg}_{run}" / f"{ns}ns_{self.leg}"
+            self.trjdump_root / f"{self.leg}_{run}" / f"{ns}ns"
         )
 
     def _locate_trajectories(self, run: int, ns: int):
@@ -133,18 +133,18 @@ class TrajectoryDumper:
     def _dump_eq_frames(self, run: int, ns: int, xtc: Path, tpr: Path,
                          out_dir: Path, ps_timepoints: list[int]):
         for ps in ps_timepoints:
-            out_pdb = out_dir / f"Run{run}EQ{ns}ns{ps}ps.pdb"
-            if out_pdb.exists():
-                logger.info(f"Already exists, skipping: {out_pdb.name}")
+            out_gro = out_dir / f"Run{run}EQ{ns}ns{ps}ps.gro"
+            if out_gro.exists():
+                logger.info(f"Already exists, skipping: {out_gro.name}")
                 continue
 
             start_time = (ns * 1000) - 1
             end_time   = start_time + ps + 1
-            logger.info(f"EQ run {run} | {ns} ns | {ps} ps -> {out_pdb.name}")
+            logger.info(f"EQ run {run} | {ns} ns | {ps} ps -> {out_gro.name}")
             run_piped(
                 [self.gmx, "trjconv",
                  "-f", str(xtc), "-s", str(tpr),
-                 "-o", str(out_pdb),
+                 "-o", str(out_gro),
                  "-b", str(start_time), "-dump", str(end_time),
                  "-fit", "rot+trans"],
                 stdin_text=f"{self.fit_group}\n{self.output_group}\n",
@@ -153,16 +153,16 @@ class TrajectoryDumper:
     def _dump_ne_np_frames(self, run: int, ns: int, xtc_pbc: Path, tpr: Path,
                             out_dir: Path, ps_timepoints: list[int], ndx: str):
         for ps in ps_timepoints:
-            out_pdb = out_dir / f"Run{run}{self.leg}{ns}ns{ps}ps.pdb"
-            if out_pdb.exists():
-                logger.info(f"Already exists, skipping: {out_pdb.name}")
+            out_gro = out_dir / f"Run{run}{self.leg}{ns}ns{ps}ps.gro"
+            if out_gro.exists():
+                logger.info(f"Already exists, skipping: {out_gro.name}")
                 continue
 
-            logger.info(f"{self.leg} run {run} | {ns} ns | {ps} ps -> {out_pdb.name}")
+            logger.info(f"{self.leg} run {run} | {ns} ns | {ps} ps -> {out_gro.name}")
             run_piped(
                 [self.gmx, "trjconv",
                  "-f", str(xtc_pbc), "-s", str(tpr),
-                 "-o", str(out_pdb),
+                 "-o", str(out_gro),
                  "-dump", str(ps), "-fit", "rot+trans", "-n", ndx],
                 stdin_text=f"{self.fit_group}\n{self.output_group}\n",
             )

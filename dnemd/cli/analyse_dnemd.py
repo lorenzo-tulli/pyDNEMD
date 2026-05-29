@@ -75,7 +75,7 @@ def analyse_timepoint(
         se_mag,
         adjusted_avg_disp,
         _adjusted_avg_vectors,
-    ) = compute_statistics(vectors_arr)
+    ) = compute_statistics(vectors_arr, se_threshold=cfg.se_threshold)
 
     n_samples = len(vectors_arr)
     label     = f"{cfg.system_name}_{time_point_ps}ps_{cfg.se_threshold}SE"

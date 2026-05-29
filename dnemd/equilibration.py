@@ -52,6 +52,8 @@ class EquilibrationPipeline:
         copy_file(self.cfg.input_gro, self.em_dir / "solv_ions.gro")
         copy_file(self.cfg.topology,  self.em_dir / "topol.top")
         copy_file(self.cfg.index_ndx, self.em_dir / "index.ndx")
+        for itp in Path(self.cfg.topology).parent.glob("*.itp"):
+            copy_file(itp, self.em_dir / itp.name)
 
         grompp(
             gmx=self.cfg.gmx,
