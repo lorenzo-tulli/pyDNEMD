@@ -88,5 +88,5 @@ def test_write_stats_txt_line_count(tmp_path):
     out = tmp_path / "stats.txt"
     write_stats_txt(out, avg_vectors, avg_disp, se, se_mag, n_samples=10)
     lines = [l for l in out.read_text().splitlines() if l.strip()]
-    # 4 header lines + n_ca data lines
-    assert len(lines) == 4 + n_ca
+    # 5 header lines (two separator rows + 3 column label rows) + n_ca data lines
+    assert len(lines) == 5 + n_ca
