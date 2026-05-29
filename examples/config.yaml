@@ -1,0 +1,40 @@
+# Paths to your input files
+input_gro: /path/to/solv_ions.gro
+topology:  /path/to/topol.top
+index_ndx: /path/to/index.ndx
+
+# System name (used for output labels)
+system_name: SYSTEM
+
+# GROMACS executable (use gmx_mpi or gmx depending on your HPC)
+gmx: gmx_mpi
+
+# MDP templates directory
+mdp_dir: /path/to/templates
+
+# Output directory for all results
+output_dir: /path/to/output
+
+# Equilibrium simulation settings
+n_runs: 5                  # number of independent equilibrium runs
+
+# NE/NP extraction for input files generation (overridden by --start and --frequency CLI flags)
+extract_start_ps:     50000   # ps — default start for frame extraction
+extract_frequency_ps: 5000    # ps — interval between extracted frames
+
+# --- Simulation directories (used by extract.py) ---
+eq_sim_dir:  /path/to/equil_simuls
+ne_sim_dir:  /path/to/D-NEMD_simuls
+np_sim_dir:  /path/to/null-perturbations_simuls
+
+# Index file used for NE/NP centering and PBC correction
+ne_index:    /path/to/index.ndx
+
+# extraction frequency used to analyse dnemd_results
+extract_ns_start:    50
+extract_ns_end:      250
+extract_ns_interval: 5
+
+# DNEMD analysis settings
+time_points_ps: [0, 10, 100, 1000, 5000]
+se_threshold: 1               # 1 or 2 SE significance threshold
