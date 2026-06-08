@@ -35,6 +35,8 @@ After installation the following commands are available:
 |---|---|
 | `dnemd-equilibrium` | Run GROMACS equilibration pipeline |
 | `dnemd-create-ne-np` | Create NE/NP input files |
+| `dnemd-run-ne` | Run non-equilibrium simulations |
+| `dnemd-run-np` | Run null perturbation simulations |
 | `dnemd-extract` | Extract EQ/NE/NP frames from trajectories |
 | `dnemd-analyse-equilibrium` | Compute Cα RMSD and RMSF |
 | `dnemd-analyse-dnemd` | Compute Cα displacement vectors (NE − NP) |
@@ -57,10 +59,14 @@ dnemd-analyse-equilibrium --config my_config.yaml
 # 3. Create NE/NP input files
 dnemd-create-ne-np --config my_config.yaml --start 50000 --frequency 5000
 
-# 4. Extract frames (run after NE/NP simulations finish)
+# 4. Run NE/NP simulations
+dnemd-run-ne --config my_config.yaml
+dnemd-run-np --config my_config.yaml
+
+# 5. Extract frames (run after NE/NP simulations finish)
 dnemd-extract --config my_config.yaml --all
 
-# 5. Analyse D-NEMD results
+# 6. Analyse D-NEMD results
 dnemd-analyse-dnemd --config my_config.yaml
 ```
 
