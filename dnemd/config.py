@@ -22,6 +22,7 @@ class Config:
 
     # Extraction defaults (overridden by CLI)
     extract_start_ps:     int = 50000
+    extract_end_ps:       int = 500000
     extract_frequency_ps: int = 5000
 
     # Paths for frame extraction (used by dnemd-extract)

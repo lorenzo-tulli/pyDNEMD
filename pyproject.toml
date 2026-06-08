@@ -36,10 +36,12 @@ Repository = "https://github.com/lorenzo-tulli/pyDNEMD"
 
 [project.scripts]
 dnemd-equilibrium         = "dnemd.cli.run_equilibrium:main"
+dnemd-create-ne-np        = "dnemd.cli.create_NE_NP_files:main"
+dnemd-run-ne              = "dnemd.cli.run_ne_np:main_ne"
+dnemd-run-np              = "dnemd.cli.run_ne_np:main_np"
 dnemd-extract             = "dnemd.cli.extract:main"
 dnemd-analyse-equilibrium = "dnemd.cli.analyse_equilibrium:main"
 dnemd-analyse-dnemd       = "dnemd.cli.analyse_dnemd:main"
-dnemd-create-ne-np        = "dnemd.cli.create_NE_NP_files:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
