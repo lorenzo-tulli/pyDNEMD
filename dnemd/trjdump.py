@@ -63,7 +63,10 @@ class TrajectoryDumper:
     # ------------------------------------------------------------------
 
     def _run_dir(self, run: int, ns: int) -> Path:
-        return self.sim_path / f"r{run}" / f"{ns}ns"
+        if self.leg == "EQ":
+            return self.sim_path / f"EQ_{run}" / "prod"
+        else:
+            return self.sim_path / f"TRJDUMP_{self.leg}" / f"{self.leg}_{run}" / f"{ns}ns"
 
     def _out_dir(self, run: int, ns: int) -> Path:
         return ensure_dir(
@@ -75,11 +78,11 @@ class TrajectoryDumper:
         run_dir = self._run_dir(run, ns)
 
         if self.leg == "EQ":
-            xtc = run_dir / f"r{run}.xtc"
-            tpr = run_dir / f"r{run}.tpr"
+            xtc = run_dir / "prod.xtc"
+            tpr = run_dir / "prod.tpr"
         else:
-            xtc = run_dir / f"r{run}-{ns}ns.xtc"
-            tpr = run_dir / "md.tpr"
+            xtc = run_dir / f"MD_{self.leg}.xtc"
+            tpr = run_dir / f"MD_{self.leg}.tpr"
 
         if not xtc.exists() or not tpr.exists():
             logger.warning(
