@@ -1,11 +1,11 @@
-[build-system]
+﻿[build-system]
 requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydnemd"
 version = "0.1.0"
-description = "Driven Non-Equilibrium MD (D-NEMD) analysis pipeline for GROMACS simulations"
+description = "Dynamical Non-Equilibrium MD (D-NEMD) analysis pipeline for GROMACS simulations"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
