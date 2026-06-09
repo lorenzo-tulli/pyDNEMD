@@ -1,0 +1,41 @@
+# Paths to your input files
+input_gro: /group/chem/oliveira2t/vi24769/dnemd_package/input/solv_ions.gro
+topology:  /group/chem/oliveira2t/vi24769/dnemd_package/input/topol.top
+index_ndx: /group/chem/oliveira2t/vi24769/dnemd_package/input/index.ndx
+
+# System name (used for output labels)
+system_name: SYSTEM
+
+# GROMACS executable (use gmx_mpi or gmx depending on your HPC)
+gmx: gmx_mpi
+
+# MDP templates directory
+mdp_dir: /group/chem/oliveira2t/vi24769/dnemd_package/templates
+
+# Output directory for all results
+output_dir: /group/chem/oliveira2t/vi24769/dnemd_package/output
+
+# Equilibrium simulation settings
+n_runs: 5                  # number of independent equilibrium runs
+
+# NE/NP extraction for input files generation (overridden by --start and --frequency CLI flags)
+extract_start_ps:     50000   # ps — default start for frame extraction
+extract_frequency_ps: 5000    # ps — interval between extracted frames
+
+# --- Simulation directories (used by dnemd-extract) ---
+# All three point to output_dir: the package writes EQ_*, TRJDUMP_NE, TRJDUMP_NP there
+eq_sim_dir:  /group/chem/oliveira2t/vi24769/dnemd_package/output
+ne_sim_dir:  /group/chem/oliveira2t/vi24769/dnemd_package/output
+np_sim_dir:  /group/chem/oliveira2t/vi24769/dnemd_package/output
+
+# Index file used for NE/NP centering and PBC correction (created by dnemd-create-ne-np)
+ne_index:    /group/chem/oliveira2t/vi24769/dnemd_package/output/perturbed_topology/perturbed_index.ndx
+
+# extraction frequency used to analyse dnemd_results
+extract_ns_start:    50
+extract_ns_end:      250
+extract_ns_interval: 5
+
+# DNEMD analysis settings
+time_points_ps: [0, 10, 100, 1000, 5000]
+se_threshold: 1               # 1 or 2 SE significance threshold
