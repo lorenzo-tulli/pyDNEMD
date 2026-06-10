@@ -90,9 +90,12 @@ def frame_times_ns(start_ps: int, frequency_ps: int, end_ps: int) -> list[int]:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config",                required=True)
-    parser.add_argument("--start",     type=int,   required=True)
-    parser.add_argument("--frequency", type=int,   required=True)
-    parser.add_argument("--end",       type=int,   default=None)
+    parser.add_argument("--start",     type=int,   default=None,
+                        help="First frame to extract in ps (default: extract_start_ps from config)")
+    parser.add_argument("--frequency", type=int,   default=None,
+                        help="Interval between frames in ps (default: extract_frequency_ps from config)")
+    parser.add_argument("--end",       type=int,   default=None,
+                        help="Last frame in ps (default: extract_end_ps from config, or auto-detected from TPR)")
     parser.add_argument("--run",       type=int,   default=None)
     parser.add_argument("--skip-topology-build", action="store_true")
     parser.add_argument("--skip-topology-test",  action="store_true")
@@ -101,6 +104,9 @@ def main():
     cfg     = Config.from_yaml(args.config)
     setup   = NESetup(cfg)
     run_ids = [args.run] if args.run else list(range(1, cfg.n_runs + 1))
+
+    start_ps     = args.start     if args.start     is not None else cfg.extract_start_ps
+    frequency_ps = args.frequency if args.frequency is not None else cfg.extract_frequency_ps
 
     if not args.skip_topology_build:
         setup.build_topology()
@@ -115,13 +121,15 @@ def main():
         )
         return
 
-    if args.end is None:
+    if args.end is not None:
+        end_ps = args.end
+    elif cfg.extract_end_ps:
+        end_ps = cfg.extract_end_ps
+    else:
         first_tpr = Path(cfg.output_dir) / f"EQ_{run_ids[0]}" / "prod" / "prod.tpr"
         end_ps = get_production_length_ps(str(first_tpr), cfg.gmx)
-    else:
-        end_ps = args.end
 
-    time_points_ns = frame_times_ns(args.start, args.frequency, end_ps)
+    time_points_ns = frame_times_ns(start_ps, frequency_ps, end_ps)
     logger.info(
         f"Extracting {len(time_points_ns)} frames per run: "
         f"{time_points_ns[0]}–{time_points_ns[-1]} ns"
