@@ -32,19 +32,19 @@ def collect_vectors(
 ) -> np.ndarray:
     """
     Collect all (NE - NP) Cα displacement vectors for one time point.
-    Directory layout mirrors your existing TRJDUMP structure:
+    Directory layout:
         base_dir/TRJDUMP_EQ/EQ_<run>/<time>ns/Run<run>EQ<time>ns<tp>ps.gro
-        base_dir/TRJDUMP_NE/NE_<run>/<time>ns/Run<run>NE<time>ns<tp>ps.gro
-        base_dir/TRJDUMP_NP/NP_<run>/<time>ns/Run<run>NP<time>ns<tp>ps.gro
+        base_dir/NE_<run>/<time>ns/Run<run>NE<time>ns<tp>ps.gro
+        base_dir/NP_<run>/<time>ns/Run<run>NP<time>ns<tp>ps.gro
     """
     base_dir = Path(base_dir)
     vectors = []
 
     for run in runs:
         for t in time_range_ns:
-            eq = base_dir / f"TRJDUMP_EQ/EQ_{run}/{t}ns/Run{run}EQ{t}ns{time_point_ps}ps.gro"
-            ne = base_dir / f"TRJDUMP_NE/NE_{run}/{t}ns/Run{run}NE{t}ns{time_point_ps}ps.gro"
-            np_ = base_dir / f"TRJDUMP_NP/NP_{run}/{t}ns/Run{run}NP{t}ns{time_point_ps}ps.gro"
+            eq  = base_dir / f"TRJDUMP_EQ/EQ_{run}/{t}ns/Run{run}EQ{t}ns{time_point_ps}ps.gro"
+            ne  = base_dir / f"NE_{run}/{t}ns/Run{run}NE{t}ns{time_point_ps}ps.gro"
+            np_ = base_dir / f"NP_{run}/{t}ns/Run{run}NP{t}ns{time_point_ps}ps.gro"
 
             diff = load_and_align_ca(str(eq), str(ne), str(np_))
             if diff is not None:

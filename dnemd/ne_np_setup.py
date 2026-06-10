@@ -102,54 +102,59 @@ class NESetup:
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _extract_frame(self, run_id: int, time_ns: int, out_gro: Path):
+    def _extract_frame(self, run_id: int, time_ns: int, out_gro: Path,
+                       ndx: str = None, group: str = "Protein_Water_and_ions"):
         """Dump a single frame from the production trajectory."""
         prod_dir = Path(self.cfg.output_dir) / f"EQ_{run_id}" / "prod"
-        run_piped(
-            [self.cfg.gmx, "trjconv",
-             "-f", str(prod_dir / "prod.xtc"),
-             "-s", str(prod_dir / "prod.tpr"),
-             "-o", str(out_gro),
-             "-pbc", "whole",
-             "-dump", str(time_ns),
-             "-tu", "ns",
-             "-n", str(self.ndx)],
-            stdin_text="Protein_Water_and_ions\n",
-            cwd=prod_dir,
-        )
+        cmd = [self.cfg.gmx, "trjconv",
+               "-f", str(prod_dir / "prod.xtc"),
+               "-s", str(prod_dir / "prod.tpr"),
+               "-o", str(out_gro),
+               "-pbc", "whole",
+               "-dump", str(time_ns),
+               "-tu", "ns"]
+        if ndx:
+            cmd += ["-n", ndx]
+        run_piped(cmd, stdin_text=f"{group}\n", cwd=prod_dir)
 
     def _create_leg_input(self, leg: str, run_id: int, time_ns: int):
         """
         Create input files for one leg (NE or NP) at one time point.
-        NE and NP share the extracted GRO; NP uses a different MDP
-        (gen_vel = yes) to reassign velocities.
+
+        NE: perturbed topology (ligand removed), keeps velocities from
+            extracted frame (gen_vel = no in Prod_RunNE.mdp).
+        NP: original topology (ligand present), velocities reassigned from
+            Maxwell-Boltzmann (gen_vel = yes in Prod_RunNP.mdp).
         """
         leg_dir = ensure_dir(
-            Path(self.cfg.output_dir) / f"TRJDUMP_{leg}"
-            / f"{leg}_{run_id}" / f"{time_ns}ns"
+            Path(self.cfg.output_dir) / f"{leg}_{run_id}" / f"{time_ns}ns"
         )
         mdp_name = f"Prod_Run{leg}.mdp"
         copy_file(Path(self.cfg.mdp_dir) / mdp_name, leg_dir / mdp_name)
 
-        posre = self.perturb_dir / "posre.itp"
-        if posre.exists():
-            copy_file(posre, leg_dir / "posre.itp")
-
-        # NE extracts its own frame; NP reuses it
-        ne_gro = (
-            Path(self.cfg.output_dir) / "TRJDUMP_NE"
-            / f"NE_{run_id}" / f"{time_ns}ns" / f"{time_ns}ns_NE.gro"
-        )
         leg_gro = leg_dir / f"{time_ns}ns_{leg}.gro"
 
         if leg == "NE":
             logger.info(f"NE run {run_id}, {time_ns} ns: extracting frame...")
-            self._extract_frame(run_id, time_ns, leg_gro)
-        else:
-            if not ne_gro.exists():
-                logger.warning(f"NE gro not found for NP: {ne_gro}. Skipping.")
-                return
-            shutil.copy2(ne_gro, leg_gro)
+            self._extract_frame(run_id, time_ns, leg_gro,
+                                ndx=str(self.ndx),
+                                group="Protein_Water_and_ions")
+            top = str(self.perturb_dir / "topolperturb.top")
+            ndx_for_grompp = str(self.ndx)
+            # Copy ITP files needed by topolperturb.top
+            for itp in self.perturb_dir.glob("*.itp"):
+                copy_file(itp, leg_dir / itp.name)
+
+        else:  # NP — unperturbed system, only velocities reassigned
+            logger.info(f"NP run {run_id}, {time_ns} ns: extracting frame...")
+            self._extract_frame(run_id, time_ns, leg_gro,
+                                ndx=str(self.cfg.index_ndx),
+                                group="System")
+            top = str(Path(self.cfg.topology))
+            ndx_for_grompp = str(self.cfg.index_ndx)
+            # Copy ITP files needed by topol.top
+            for itp in Path(self.cfg.topology).parent.glob("*.itp"):
+                copy_file(itp, leg_dir / itp.name)
 
         tpr_name = f"MD_{leg}.tpr"
         logger.info(f"{leg} run {run_id}, {time_ns} ns: running grompp...")
@@ -157,9 +162,10 @@ class NESetup:
             gmx=self.cfg.gmx,
             mdp=mdp_name,
             gro=str(leg_gro),
-            top=str(self.perturb_dir / "topolperturb.top"),
+            top=top,
             out_tpr=tpr_name,
             ref_gro=str(leg_gro),
+            ndx=ndx_for_grompp,
             maxwarn=2,
             cwd=leg_dir,
         )
