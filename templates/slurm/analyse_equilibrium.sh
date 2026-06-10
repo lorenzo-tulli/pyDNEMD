@@ -4,16 +4,15 @@
 #SBATCH --error=logs/analyse_eq.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --time=02:00:00
-#SBATCH --partition=cpu
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32GB
+#SBATCH --account=chem021482
+#SBATCH --time=10:00:00
+#SBATCH --partition=compute
 
-# ── environment ──────────────────────────────────────────────────────────────
-source $(conda info --base)/etc/profile.d/conda.sh
-conda activate pyDNEMD
+module load openmpi/5.0.3
+module load gromacs/2024.2-netlib-lapack
 
-module load GROMACS             # needed for gmx rms / rmsf calls
-
-# ── run ──────────────────────────────────────────────────────────────────────
 mkdir -p logs
 
-dnemd-analyse-equilibrium --config config.yaml
+dnemd-analyse-equilibrium --config config_test.yaml

@@ -35,7 +35,6 @@ def build_time_points(start_ps: int, frequency_ps: int, end_ps: int) -> list[int
 def run_simulation(leg: str, cfg: Config, run_id: int, time_ns: int):
     tpr_dir = (
         Path(cfg.output_dir)
-        / f"TRJDUMP_{leg}"
         / f"{leg}_{run_id}"
         / f"{time_ns}ns"
     )

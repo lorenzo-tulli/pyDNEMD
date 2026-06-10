@@ -1,41 +1,42 @@
 # Paths to your input files
-input_gro: /group/chem/oliveira2t/vi24769/dnemd_package/input/solv_ions.gro
-topology:  /group/chem/oliveira2t/vi24769/dnemd_package/input/topol.top
-index_ndx: /group/chem/oliveira2t/vi24769/dnemd_package/input/index.ndx
+input_gro: /group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/inputs/solv_ions.gro
+topology:  /group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/inputs/topol.top
+index_ndx: /group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/inputs/index.ndx
 
 # System name (used for output labels)
-system_name: SYSTEM
+system_name: TEST
 
 # GROMACS executable (use gmx_mpi or gmx depending on your HPC)
 gmx: gmx_mpi
 
-# MDP templates directory
-mdp_dir: /group/chem/oliveira2t/vi24769/dnemd_package/templates
+# MDP templates directory — point to templates/test/ for short test runs
+mdp_dir: /group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/templates
 
 # Output directory for all results
-output_dir: /group/chem/oliveira2t/vi24769/dnemd_package/output
+output_dir: /group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/output
 
 # Equilibrium simulation settings
-n_runs: 5                  # number of independent equilibrium runs
+n_runs: 2                  # 2 replicates for testing
 
-# NE/NP extraction for input files generation (overridden by --start and --frequency CLI flags)
-extract_start_ps:     50000   # ps — default start for frame extraction
-extract_frequency_ps: 5000    # ps — interval between extracted frames
+# NE/NP frame extraction: 5 frames from 2-10 ns (every 2 ns)
+extract_start_ps:     2000    # ps — 2 ns
+extract_end_ps:       10000   # ps — 10 ns (matches test production.mdp)
+extract_frequency_ps: 2000    # ps — every 2 ns -> frames at 2,4,6,8,10 ns
 
 # --- Simulation directories (used by dnemd-extract) ---
 # All three point to output_dir: the package writes EQ_*, TRJDUMP_NE, TRJDUMP_NP there
-eq_sim_dir:  /group/chem/oliveira2t/vi24769/dnemd_package/output
-ne_sim_dir:  /group/chem/oliveira2t/vi24769/dnemd_package/output
-np_sim_dir:  /group/chem/oliveira2t/vi24769/dnemd_package/output
+eq_sim_dir:  /group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/output
+ne_sim_dir:  /group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/output
+np_sim_dir:  /group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/output
 
 # Index file used for NE/NP centering and PBC correction (created by dnemd-create-ne-np)
-ne_index:    /group/chem/oliveira2t/vi24769/dnemd_package/output/perturbed_topology/perturbed_index.ndx
+ne_index:    /path/to/output/perturbed_topology/perturbed_index.ndx
 
-# extraction frequency used to analyse dnemd_results
-extract_ns_start:    50
-extract_ns_end:      250
-extract_ns_interval: 5
+# ns windows to extract from NE/NP trajectories (must match extraction above)
+extract_ns_start:    0
+extract_ns_end:      1
+extract_ns_interval: 1
 
-# DNEMD analysis settings
-time_points_ps: [0, 10, 100, 1000, 5000]
+# DNEMD analysis settings — time points within the 1 ns NE/NP simulations
+time_points_ps: [0, 1000]
 se_threshold: 1               # 1 or 2 SE significance threshold

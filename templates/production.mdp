@@ -2,12 +2,12 @@
 
 integrator            =  md-vv
 dt                    =  0.002     ; fs
-nsteps                =  250000000    ; -> total 500ns.
+nsteps                =  2500000   ; -> total 5ns.
 nstcomm               =  500  ;  equal to nstenergy
-nstxout-compressed    =  500  ;  writing every 1 ps
-compressed-x-precision = 500  ;  writing every 1 ps
-nstlog                =  500  ;  writing every 1 ps
-nstenergy             =  500  ;  writing every 1 ps  
+nstxout-compressed    =  5000  ;  writing every 10 ps
+compressed-x-precision = 5000  ;  writing every 10 ps
+nstlog                =  5000  ;  writing every 10 ps
+nstenergy             =  5000  ;  writing every 10 ps  
 
 ;neighbor searching
 nstlist             =  20 ; until 40 for gpu
