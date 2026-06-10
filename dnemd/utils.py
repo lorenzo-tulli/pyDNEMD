@@ -43,6 +43,10 @@ def run_piped(cmd: list[str], stdin_text: str, cwd: str | Path = None) -> subpro
         text=True,
         capture_output=True,
     )
+    if result.stdout:
+        logger.info(result.stdout[-2000:])
+    if result.stderr:
+        logger.warning(result.stderr[-2000:])
     return result
 
 
