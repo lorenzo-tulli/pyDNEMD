@@ -97,7 +97,6 @@ def main():
     parser.add_argument("--end",       type=int,   default=None,
                         help="Last frame in ps (default: extract_end_ps from config, or auto-detected from TPR)")
     parser.add_argument("--run",       type=int,   default=None)
-    parser.add_argument("--skip-topology-build", action="store_true")
     parser.add_argument("--skip-topology-test",  action="store_true")
     args = parser.parse_args()
 
@@ -108,18 +107,11 @@ def main():
     start_ps     = args.start     if args.start     is not None else cfg.extract_start_ps
     frequency_ps = args.frequency if args.frequency is not None else cfg.extract_frequency_ps
 
-    if not args.skip_topology_build:
-        setup.build_topology()
+    if not setup.check_required_files():
+        return
+
     if not args.skip_topology_test:
         setup.test_topology()
-
-    topolperturb = setup.perturb_dir / "topolperturb.top"
-    if not topolperturb.exists():
-        logger.error(
-            f"topolperturb.top not found in {setup.perturb_dir}.\n"
-            "Create it, then re-run with --skip-topology-build --skip-topology-test."
-        )
-        return
 
     if args.end is not None:
         end_ps = args.end
