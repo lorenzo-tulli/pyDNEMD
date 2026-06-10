@@ -29,45 +29,40 @@ class NESetup:
     # Public interface
     # ------------------------------------------------------------------
 
-    def build_topology(self, run_id: int = 1):
-        """Create perturbed_em.gro and perturbed_index.ndx."""
-        ensure_dir(self.perturb_dir)
-        em_dir = Path(self.cfg.output_dir) / f"EQ_{run_id}" / "em"
-        em_gro = em_dir / "em.gro"
-        em_tpr = em_dir / "em.tpr"
+    def check_required_files(self) -> bool:
+        """
+        Check that perturbed_index.ndx and topolperturb.top exist.
+        Prints instructions and returns False if either is missing.
+        """
+        missing = False
 
-        if not em_gro.exists():
-            raise FileNotFoundError(
-                f"EM structure not found: {em_gro}\n"
-                "Run run_equilibrium.py first."
+        if not self.ndx.exists():
+            logger.error(
+                f"\nMissing: {self.ndx}\n"
+                "Create a custom index file with a group called 'Protein_Water_and_ions'\n"
+                "containing all atoms except the ligand, then place it at the path above.\n\n"
+                "Example (adjust group numbers for your system):\n"
+                f"  mkdir -p {self.perturb_dir}\n"
+                f"  gmx_mpi make_ndx -f <output_dir>/EQ_1/em/em.gro \\\n"
+                f"                   -n <input_dir>/index.ndx \\\n"
+                f"                   -o {self.ndx}\n"
+                "  # In the make_ndx prompt, list groups with Enter, then combine\n"
+                "  # Protein and Water_and_ions using their group numbers, e.g.:\n"
+                "  #   1 | 20\n"
+                "  #   q\n"
             )
+            missing = True
 
-        shutil.copy2(em_dir / "index.ndx", self.ndx)
-        logger.info("Building Protein_Solvent index group...")
-        make_index(
-            gmx=self.cfg.gmx,
-            gro=str(em_gro),
-            ndx_in=str(self.ndx),
-            ndx_out=str(self.ndx),
-            selection="Protein | Water_and_ions",
-            cwd=self.perturb_dir,
-        )
+        topolperturb = self.perturb_dir / "topolperturb.top"
+        if not topolperturb.exists():
+            logger.error(
+                f"\nMissing: {topolperturb}\n"
+                "Create it by copying your topology file and removing the ligand\n"
+                "from the [ molecules ] section, then place it at the path above.\n"
+            )
+            missing = True
 
-        perturbed_gro = self.perturb_dir / "perturbed_em.gro"
-        logger.info("Extracting protein+solvent structure...")
-        trjconv_pbc(
-            gmx=self.cfg.gmx,
-            gro_in=str(em_gro),
-            tpr=str(em_tpr),
-            gro_out=str(perturbed_gro),
-            ndx=str(self.ndx),
-            group="Protein_Water_and_ions",
-            cwd=self.perturb_dir,
-        )
-        logger.info(
-            "ACTION REQUIRED: create topolperturb.top in "
-            f"{self.perturb_dir} by removing ligand entries from topol.top."
-        )
+        return not missing
 
     def test_topology(self):
         """Validate the perturbed topology with grompp."""
