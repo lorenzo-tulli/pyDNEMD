@@ -1,58 +1,54 @@
 #!/usr/bin/env python3
 
 """
-1. Build and test the perturbed topology (protein + solvent, no ligand).
+1. Auto-generate perturbed_index.ndx from the first EQ energy-minimised structure.
 2. Extract frames from each equilibrium run at the requested interval.
 3. Create GROMACS input files for Non-Equilibrium (NE) simulations
    (perturbed topology, velocities NOT reassigned).
 4. Create GROMACS input files for Null-Perturbation (NP) simulations
-   (perturbed topology, velocities reassigned from Maxwell-Boltzmann distribution).
+   (original topology, velocities reassigned from Maxwell-Boltzmann distribution).
+
+Files the user must place in output/perturbed_topology/ before running:
+
+    extraction_index.ndx  — copy of your production index.ndx with an extra group
+                             called 'Protein_Water_and_ions' (protein + water + ions,
+                             ligand excluded).  Create it with:
+                               gmx_mpi make_ndx -f output/EQ_1/em/em.gro \\
+                                                -n inputs/index.ndx \\
+                                                -o output/perturbed_topology/extraction_index.ndx
+                             then in the make_ndx prompt combine the groups, e.g.:
+                               1 | 20
+                               name <N> Protein_Water_and_ions
+                               q
+
+    topolperturb.top      — copy of topol.top with the ligand removed from [ molecules ]:
+                               Protein  1
+                               SOL      39553
+                               NA       119
+                               CL       114
 
 Directory layout created:
     output/
     ├── perturbed_topology/
-    │   ├── perturbed_em.gro
-    │   ├── perturbed_index.ndx
-    │   └── topolperturb.top        ← user must provide
-    ├── TRJDUMP_NE/
-    │   └── NE_<run>/<time>ns/
-    │       ├── <time>ns_NE.gro
-    │       ├── Prod_RunNE.mdp
-    │       └── MD_NE.tpr
-    └── TRJDUMP_NP/
-        └── NP_<run>/<time>ns/
-            ├── <time>ns_NP.gro
-            ├── Prod_RunNP.mdp
-            └── MD_NP.tpr
-
-The user must provide the file topolperturb.top by removing ligand entries from topol.top.
-
-    topol.top:
-    ...
-    [ molecules ]
-    ; Compound        #mols
-    Protein             1
-    Ligand              1
-    SOL             39553
-    NA                119
-    CL                114
-
-    topolperturb.top:
-    ...
-    [ molecules ]
-    ; Compound        #mols
-    Protein             1
-    SOL             39553
-    NA                119
-    CL                114
-
+    │   ├── extraction_index.ndx   ← user must provide
+    │   ├── topolperturb.top       ← user must provide
+    │   ├── perturbed_system.gro   ← auto-generated
+    │   └── perturbed_index.ndx    ← auto-generated
+    ├── NE_<run>/<time>ns/
+    │   ├── <time>ns_NE.gro
+    │   ├── Prod_RunNE.mdp
+    │   └── MD_NE.tpr
+    └── NP_<run>/<time>ns/
+        ├── <time>ns_NP.gro
+        ├── Prod_RunNP.mdp
+        └── MD_NP.tpr
 
 Usage:
-    python scripts/create_NE_NP_files.py --config examples/config.yaml \\
-        --start 50000 --frequency 5000
+    dnemd-create-ne-np --config config.yaml
 
-    --start      : first frame to extract, in ps  (e.g. 50000 = 50 ns)
-    --frequency  : interval between frames, in ps (e.g. 5000  =  5 ns)
+    --start      : first frame to extract, in ps  (default: extract_start_ps from config)
+    --frequency  : interval between frames, in ps (default: extract_frequency_ps from config)
+    --end        : last frame in ps               (default: extract_end_ps from config)
 """
 
 import argparse

@@ -1,10 +1,9 @@
 """
 Create NE/NP simulation input files.
 """
-import shutil
 from pathlib import Path
-from dnemd.gromacs import make_index, trjconv_pbc, grompp
-from dnemd.utils import ensure_dir, get_logger, copy_file, run, run_piped
+from dnemd.gromacs import grompp
+from dnemd.utils import ensure_dir, get_logger, copy_file, run_piped
 
 logger = get_logger("ne_np_setup")
 
@@ -21,9 +20,12 @@ class NESetup:
     """
 
     def __init__(self, cfg, perturb_dir: Path = None):
-        self.cfg         = cfg
-        self.perturb_dir = perturb_dir or Path(cfg.output_dir) / "perturbed_topology"
-        self.ndx         = self.perturb_dir / "perturbed_index.ndx"
+        self.cfg            = cfg
+        self.perturb_dir    = Path(perturb_dir or Path(cfg.output_dir) / "perturbed_topology")
+        # User-provided: index.ndx with a Protein_Water_and_ions group added
+        self.extraction_ndx = self.perturb_dir / "extraction_index.ndx"
+        # Auto-generated: index built from perturbed_system.gro (no ligand)
+        self.perturbed_ndx  = self.perturb_dir / "perturbed_index.ndx"
 
     # ------------------------------------------------------------------
     # Public interface
@@ -31,24 +33,26 @@ class NESetup:
 
     def check_required_files(self) -> bool:
         """
-        Check that perturbed_index.ndx and topolperturb.top exist.
+        Check that extraction_index.ndx and topolperturb.top exist.
         Prints instructions and returns False if either is missing.
         """
         missing = False
 
-        if not self.ndx.exists():
+        if not self.extraction_ndx.exists():
             logger.error(
-                f"\nMissing: {self.ndx}\n"
-                "Create a custom index file with a group called 'Protein_Water_and_ions'\n"
-                "containing all atoms except the ligand, then place it at the path above.\n\n"
-                "Example (adjust group numbers for your system):\n"
+                f"\nMissing: {self.extraction_ndx}\n\n"
+                "Create an index file based on your production index.ndx, adding a group\n"
+                "called 'Protein_Water_and_ions' that contains all atoms except the ligand.\n"
+                "Then place it at the path shown above.\n\n"
+                "Example (adjust group numbers to match your system):\n"
                 f"  mkdir -p {self.perturb_dir}\n"
                 f"  gmx_mpi make_ndx -f <output_dir>/EQ_1/em/em.gro \\\n"
                 f"                   -n <input_dir>/index.ndx \\\n"
-                f"                   -o {self.ndx}\n"
-                "  # In the make_ndx prompt, list groups with Enter, then combine\n"
-                "  # Protein and Water_and_ions using their group numbers, e.g.:\n"
+                f"                   -o {self.extraction_ndx}\n"
+                "  # In the make_ndx prompt, list groups with Enter,\n"
+                "  # then combine Protein and Water_and_ions by their group numbers, e.g.:\n"
                 "  #   1 | 20\n"
+                "  #   name <N> Protein_Water_and_ions\n"
                 "  #   q\n"
             )
             missing = True
@@ -56,13 +60,53 @@ class NESetup:
         topolperturb = self.perturb_dir / "topolperturb.top"
         if not topolperturb.exists():
             logger.error(
-                f"\nMissing: {topolperturb}\n"
+                f"\nMissing: {topolperturb}\n\n"
                 "Create it by copying your topology file and removing the ligand\n"
                 "from the [ molecules ] section, then place it at the path above.\n"
             )
             missing = True
 
         return not missing
+
+    def build_perturbed_index(self):
+        """
+        Auto-generate perturbed_index.ndx from perturbed_system.gro.
+
+        Steps:
+          1. Extract Protein_Water_and_ions atoms from EQ_1/em/em.gro using
+             extraction_index.ndx -> perturbed_system.gro
+          2. Run make_ndx on perturbed_system.gro -> perturbed_index.ndx
+
+        Skipped if perturbed_index.ndx already exists.
+        """
+        if self.perturbed_ndx.exists():
+            logger.info("perturbed_index.ndx already exists — skipping rebuild.")
+            return
+
+        ensure_dir(self.perturb_dir)
+        em_dir        = Path(self.cfg.output_dir) / "EQ_1" / "em"
+        perturbed_gro = self.perturb_dir / "perturbed_system.gro"
+
+        logger.info("Extracting perturbed system from EQ_1/em/em.gro...")
+        run_piped(
+            [self.cfg.gmx, "trjconv",
+             "-f", str(em_dir / "em.gro"),
+             "-s", str(em_dir / "em.tpr"),
+             "-n", str(self.extraction_ndx),
+             "-o", str(perturbed_gro)],
+            stdin_text="Protein_Water_and_ions\n",
+            cwd=self.perturb_dir,
+        )
+
+        logger.info("Building perturbed_index.ndx from perturbed_system.gro...")
+        run_piped(
+            [self.cfg.gmx, "make_ndx",
+             "-f", str(perturbed_gro),
+             "-o", str(self.perturbed_ndx)],
+            stdin_text="q\n",
+            cwd=self.perturb_dir,
+        )
+        logger.info(f"perturbed_index.ndx written to {self.perturbed_ndx}")
 
     def test_topology(self):
         """Validate the perturbed topology with grompp."""
@@ -74,10 +118,11 @@ class NESetup:
         grompp(
             gmx=self.cfg.gmx,
             mdp=str(Path(self.cfg.mdp_dir) / "Prod_RunNE.mdp"),
-            gro=str(self.perturb_dir / "perturbed_em.gro"),
+            gro=str(self.perturb_dir / "perturbed_system.gro"),
             top=str(topolperturb),
             out_tpr=str(self.perturb_dir / "test.tpr"),
-            ref_gro=str(self.perturb_dir / "perturbed_em.gro"),
+            ref_gro=str(self.perturb_dir / "perturbed_system.gro"),
+            ndx=str(self.perturbed_ndx),
             maxwarn=2,
             cwd=self.perturb_dir,
         )
@@ -86,15 +131,17 @@ class NESetup:
 
     def create_inputs(self, run_ids: list[int], time_points_ns: list[int]):
         """Create NE and NP input files for all run/time combinations."""
+        self.build_perturbed_index()
+
         total = len(run_ids) * len(time_points_ns)
         done  = 0
         for run_id in run_ids:
             for time_ns in time_points_ns:
-                try:
-                    self._create_leg_input("NE", run_id, time_ns)
-                    self._create_leg_input("NP", run_id, time_ns)
-                except Exception as e:
-                    logger.warning(f"Run {run_id}, {time_ns} ns failed: {e}")
+                for leg in ("NE", "NP"):
+                    try:
+                        self._create_leg_input(leg, run_id, time_ns)
+                    except Exception as e:
+                        logger.warning(f"{leg} run {run_id}, {time_ns} ns failed: {e}")
                 done += 1
                 logger.info(f"Progress: {done}/{total}")
 
@@ -123,6 +170,8 @@ class NESetup:
 
         NE: perturbed topology (ligand removed), keeps velocities from
             extracted frame (gen_vel = no in Prod_RunNE.mdp).
+            - Frame extracted using extraction_index.ndx (group Protein_Water_and_ions)
+            - grompp uses perturbed_index.ndx (built from perturbed structure)
         NP: original topology (ligand present), velocities reassigned from
             Maxwell-Boltzmann (gen_vel = yes in Prod_RunNP.mdp).
         """
@@ -137,11 +186,10 @@ class NESetup:
         if leg == "NE":
             logger.info(f"NE run {run_id}, {time_ns} ns: extracting frame...")
             self._extract_frame(run_id, time_ns, leg_gro,
-                                ndx=str(self.ndx),
+                                ndx=str(self.extraction_ndx),
                                 group="Protein_Water_and_ions")
-            top = str(self.perturb_dir / "topolperturb.top")
-            ndx_for_grompp = str(self.ndx)
-            # Copy ITP files needed by topolperturb.top
+            top            = str(self.perturb_dir / "topolperturb.top")
+            ndx_for_grompp = str(self.perturbed_ndx)
             for itp in self.perturb_dir.glob("*.itp"):
                 copy_file(itp, leg_dir / itp.name)
 
@@ -150,9 +198,8 @@ class NESetup:
             self._extract_frame(run_id, time_ns, leg_gro,
                                 ndx=str(self.cfg.index_ndx),
                                 group="System")
-            top = str(Path(self.cfg.topology))
+            top            = str(Path(self.cfg.topology))
             ndx_for_grompp = str(self.cfg.index_ndx)
-            # Copy ITP files needed by topol.top
             for itp in Path(self.cfg.topology).parent.glob("*.itp"):
                 copy_file(itp, leg_dir / itp.name)
 
