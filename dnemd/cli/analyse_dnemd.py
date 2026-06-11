@@ -207,21 +207,25 @@ def main():
         help="Number of independent runs (default: n_runs from config)",
     )
     parser.add_argument(
-        "--start-ns", type=int, default=50,
-        help="First equilibrium time point to include in ns (default: 50)",
+        "--start-ns", type=int, default=None,
+        help="First equilibrium time point to include in ns (default: from config extract_ns_start)",
     )
     parser.add_argument(
-        "--end-ns", type=int, default=495,
-        help="Last equilibrium time point to include in ns (default: 495)",
+        "--end-ns", type=int, default=None,
+        help="Last equilibrium time point to include in ns (default: from config extract_ns_end)",
     )
     parser.add_argument(
-        "--interval-ns", type=int, default=5,
-        help="Interval between equilibrium time points in ns (default: 5)",
+        "--interval-ns", type=int, default=None,
+        help="Interval between equilibrium time points in ns (default: from config extract_ns_interval)",
     )
     args = parser.parse_args()
 
     # ---------------------------------------------------------------- Config --
     cfg = Config.from_yaml(args.config)
+
+    start_ns    = args.start_ns    if args.start_ns    is not None else cfg.extract_ns_start
+    end_ns      = args.end_ns      if args.end_ns      is not None else cfg.extract_ns_end
+    interval_ns = args.interval_ns if args.interval_ns is not None else cfg.extract_ns_interval
 
     # Resolve which time points to analyse
     if args.time_point is not None:
@@ -249,14 +253,14 @@ def main():
 
     n_runs      = args.runs if args.runs else cfg.n_runs
     runs        = range(1, n_runs + 1)
-    time_range_ns = range(args.start_ns, args.end_ns + 1, args.interval_ns)
+    time_range_ns = range(start_ns, end_ns + 1, interval_ns)
 
     logger.info(f"System      : {cfg.system_name}")
     logger.info(f"DNEMD base  : {dnemd_base}")
     logger.info(f"Results dir : {results_dir}")
     logger.info(f"Ref PDB     : {ref_pdb}")
     logger.info(f"Runs        : {list(runs)}")
-    logger.info(f"EQ range    : {args.start_ns}–{args.end_ns} ns every {args.interval_ns} ns")
+    logger.info(f"EQ range    : {start_ns}–{end_ns} ns every {interval_ns} ns")
     logger.info(f"Time points : {time_points} ps")
     logger.info(f"SE threshold: {cfg.se_threshold}")
 
