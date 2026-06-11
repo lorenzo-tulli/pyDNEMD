@@ -110,10 +110,7 @@ def main():
     )
     parser.add_argument(
         "--ps-timepoints", nargs="+", type=int, default=None,
-        help=(
-            "ps time points to extract within each window "
-            "(default: 0 100 200 ... 5000)"
-        ),
+        help="ps time points to extract within each window (default: from config time_points_ps)",
     )
     parser.add_argument(
         "--runs", nargs="+", type=int, default=None,
@@ -151,8 +148,8 @@ def main():
             sys.exit(1)
 
     # Resolve run IDs and time points
-    runs         = args.runs if args.runs else list(range(1, cfg.n_runs + 1))
-    ps_timepoints = args.ps_timepoints if args.ps_timepoints else DEFAULT_PS_TIMEPOINTS
+    runs          = args.runs if args.runs else list(range(1, cfg.n_runs + 1))
+    ps_timepoints = args.ps_timepoints or cfg.time_points_ps or DEFAULT_PS_TIMEPOINTS
     ns_windows   = resolve_ns(args, cfg)
 
     logger.info(f"ns windows    : {ns_windows}")
