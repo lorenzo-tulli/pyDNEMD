@@ -123,7 +123,7 @@ class TrajectoryDumper:
                 [self.gmx, "trjconv",
                  "-f", str(xtc_raw), "-s", str(tpr),
                  "-o", str(xtc_center), "-center", "-n", ndx],
-                stdin_text=f"{self.center_group}\n{self.output_group}\n",
+                stdin_text=f"{self.center_group}\n0\n",
             )
 
         if not xtc_pbc.exists():
@@ -132,7 +132,7 @@ class TrajectoryDumper:
                 [self.gmx, "trjconv",
                  "-f", str(xtc_center), "-s", str(tpr),
                  "-o", str(xtc_pbc), "-pbc", "mol", "-n", ndx],
-                stdin_text=f"{self.output_group}\n",
+                stdin_text="0\n",
             )
 
         return xtc_pbc if xtc_pbc.exists() else None
