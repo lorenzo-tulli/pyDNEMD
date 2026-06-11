@@ -121,8 +121,8 @@ def main():
         help="GROMACS index group number for rot+trans fitting (default: 1 = Protein)"
     )
     parser.add_argument(
-        "--output-group", default="1",
-        help="GROMACS index group number for output (default: 1 = Protein)"
+        "--output-group", default="3",
+        help="GROMACS index group number for output (default: 3 = C-alpha)"
     )
     parser.add_argument(
         "--center-group", default="1",
