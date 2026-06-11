@@ -46,11 +46,7 @@ class TrajectoryDumper:
         self.fit_group    = fit_group
         self.output_group = output_group
         self.center_group = center_group
-        # EQ frames go into TRJDUMP_EQ/EQ_*/; NE/NP frames go directly into NE_*/NP_*
-        if leg == "EQ":
-            self.trjdump_root = ensure_dir(Path(sim_path) / "TRJDUMP_EQ")
-        else:
-            self.trjdump_root = Path(sim_path)
+        self.trjdump_root = Path(sim_path)
 
     # ------------------------------------------------------------------
     # Public interface
