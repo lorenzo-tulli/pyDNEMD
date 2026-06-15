@@ -1,5 +1,5 @@
 ;       Input file for md with no restraints 
-
+;       Example values used to obtein results in examples/outputs
 integrator            =  md-vv
 dt                    =  0.002     ; fs
 nsteps                =  2500000   ; -> total 5ns.
