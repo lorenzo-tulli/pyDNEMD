@@ -1,8 +1,9 @@
-;       Input file for NP with no restraints 
+;       Input file for NP generating new velocities; the values chosen
+;       are just an example to match examples/config.yaml  
 
 integrator            =  md-vv
 dt                    =  0.002     ; fs
-nsteps                =  2500000   ; -> total 5ns.
+nsteps                =  500000    ; -> total 1ns.
 nstcomm               =  500  ;  equal to nstenergy
 nstxout-compressed    =  500  ;  writing every 1 ps
 compressed-x-precision = 500  ;  writing every 1 ps

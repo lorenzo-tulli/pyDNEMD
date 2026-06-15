@@ -1,8 +1,9 @@
-;       Input file for NE with no restraints 
+;       Input file for NE without generating velocities; the values chosen
+;       are just an example to match examples/config.yaml
 
 integrator            =  md-vv
 dt                    =  0.002     ; fs
-nsteps                =  2500000   ; -> total 5ns.
+nsteps                =  500000    ; -> total 1ns.
 nstcomm               =  500  ;  equal to nstenergy
 nstxout-compressed    =  500  ;  writing every 1 ps
 compressed-x-precision = 500  ;  writing every 1 ps
@@ -43,8 +44,6 @@ refcoord-scaling    =  com
 
 ; Generate velocites is on at 310 K.
 gen_vel             =  no
-gen_temp            =  310
-gen_seed            = 61345 
 continuation        =  yes
 
 constraint_algorithm=lincs
