@@ -1,0 +1,13 @@
+.git
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+dist/
+build/
+.pytest_cache/
+examples/output/
+tests/
+.github/
+memory/
+docker/
