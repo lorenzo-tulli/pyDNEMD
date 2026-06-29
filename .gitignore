@@ -26,6 +26,7 @@ Thumbs.db
 
 # Claude Code
 .claude/
+CLAUDE.md
 
 # GROMACS / simulation outputs
 *.xtc
