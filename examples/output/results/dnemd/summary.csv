@@ -1,0 +1,2 @@
+time_point_ps,n_samples,n_ca_total,n_ca_significant,pct_significant,mean_disp_A,max_disp_A,txt_file,pdb_file
+1000,10,313,266,85.0,0.419,2.507,/group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/output/results/dnemd/stat_SYSTEM_1000ps_1SE.txt,/group/chem/oliveira2t/vi24769/dnemd_package/pyDNEMD/output/results/dnemd/vec_norm_SYSTEM_1000ps_1SE.pdb

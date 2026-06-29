@@ -6,8 +6,8 @@ __pycache__
 dist/
 build/
 .pytest_cache/
-examples/output/
 tests/
+**/*.cpt
 .github/
 memory/
 docker/

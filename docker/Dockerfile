@@ -37,16 +37,32 @@ RUN ln -s "$(which gmx)" /usr/local/bin/gmx_mpi
 RUN pip install --no-cache-dir git+https://github.com/lorenzo-tulli/pyDNEMD.git
 
 # ── Workshop directory layout ──────────────────────────────────────────────────
-# /workshop/notebook  — workshop.ipynb + config.yaml (participants edit config.yaml)
-# /workshop/templates — MDP templates (pre-installed, read-only)
-# /data               — mount input files:    -v /host/data:/data
-# /output             — mount output dir:     -v /host/output:/output
+# /workshop/notebook          — workshop.ipynb + config.yaml
+# /workshop/templates         — MDP templates
+# /workshop/examples/inputs   — bundled input files (topology, coordinates, index)
+# /workshop/examples/output   — pre-computed simulation output (ready to analyse)
+# No volume mounts needed — everything is self-contained.
 
 WORKDIR /workshop
 
-COPY workshop.ipynb        notebook/workshop.ipynb
-COPY templates/            templates/
-COPY examples/config.yaml  notebook/config.yaml
+COPY workshop.ipynb          notebook/workshop.ipynb
+COPY templates/              templates/
+COPY examples/inputs/        examples/inputs/
+COPY examples/output/        examples/output/
+
+# Pre-fill config.yaml with container paths so participants can run immediately
+COPY examples/config.yaml    notebook/config.yaml
+RUN sed -i \
+        -e 's|input_gro:.*|input_gro: /workshop/examples/inputs/solv_ions.gro|' \
+        -e 's|topology:.*|topology:  /workshop/examples/inputs/topol.top|' \
+        -e 's|index_ndx:.*|index_ndx: /workshop/examples/inputs/index.ndx|' \
+        -e 's|mdp_dir:.*|mdp_dir:   /workshop/templates|' \
+        -e 's|output_dir:.*|output_dir: /workshop/examples/output|' \
+        -e 's|eq_sim_dir:.*|eq_sim_dir: /workshop/examples/output|' \
+        -e 's|ne_sim_dir:.*|ne_sim_dir: /workshop/examples/output|' \
+        -e 's|np_sim_dir:.*|np_sim_dir: /workshop/examples/output|' \
+        -e 's|ne_index:.*|ne_index: /workshop/examples/output/perturbed_topology/perturbed_index.ndx|' \
+        notebook/config.yaml
 
 # ── JupyterLab port ───────────────────────────────────────────────────────────
 EXPOSE 8888
