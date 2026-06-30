@@ -38,6 +38,7 @@ CLAUDE.md
 *.itp
 *.log
 *.mdp
+*.cpt
 !examples/**/*.xtc
 !examples/**/*.gro
 \#*
