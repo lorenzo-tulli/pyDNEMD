@@ -8,6 +8,7 @@ on:
       - "workshop.ipynb"
       - "templates/**"
       - "examples/config.yaml"
+      - "examples/output/**"
   workflow_dispatch:
 
 jobs:
