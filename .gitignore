@@ -38,6 +38,8 @@ CLAUDE.md
 *.itp
 *.log
 *.mdp
+!examples/**/*.xtc
+!examples/**/*.gro
 \#*
 
 # Allow MDP templates to be tracked
