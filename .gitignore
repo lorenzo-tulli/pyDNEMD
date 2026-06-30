@@ -41,6 +41,7 @@ CLAUDE.md
 *.cpt
 !examples/**/*.xtc
 !examples/**/*.gro
+!examples/**/*.tpr
 \#*
 
 # Allow MDP templates to be tracked
