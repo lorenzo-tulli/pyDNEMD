@@ -1,21 +1,24 @@
 #!/bin/bash
 #SBATCH --job-name=dnemd_ne_np_setup
-#SBATCH --output=logs/ne_np_setup.out
-#SBATCH --error=logs/ne_np_setup.err
+#SBATCH --output=logs/03_ne_np_setup_%a.out
+#SBATCH --error=logs/03_ne_np_setup_%a.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --time=01:00:00
-#SBATCH --partition=cpu
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=32GB
+#SBATCH --account=XYZ
+#SBATCH --time=1:00:00
+#SBATCH --partition=test
+#SBATCH --array=1-2
 
-# ── environment ──────────────────────────────────────────────────────────────
-source $(conda info --base)/etc/profile.d/conda.sh
-conda activate pyDNEMD
+module load openmpi/5.0.3
+module load gromacs/2024.2-netlib-lapack
 
-module load GROMACS
+########################################################################
+## ---Resources requested to obtain the results in examples/output ---##
+########################################################################
 
-# ── run ──────────────────────────────────────────────────────────────────────
-# --start and --frequency override extract_start_ps and extract_frequency_ps
-# from config.yaml if needed; otherwise remove them to use config defaults.
+# --skip-topology-test avoids race conditions when tasks run simultaneously.
 mkdir -p logs
 
-dnemd-create-ne-np --config config.yaml --start 50000 --frequency 5000
+dnemd-create-ne-np --config config_test.yaml --run $SLURM_ARRAY_TASK_ID --skip-topology-test

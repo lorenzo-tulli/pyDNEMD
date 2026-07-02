@@ -93,20 +93,12 @@ def analyse_timepoint(
     logger.info(f"Stats written: {txt_path}")
 
     # ------------------------------------------------------- B-factor PDB --
-    if not ref_pdb.exists():
-        logger.warning(
-            f"Reference PDB not found: {ref_pdb}\n"
-            "Skipping B-factor PDB. Provide a 'closest_to_average.pdb' "
-            "in the DNEMD base directory."
-        )
-        pdb_path = None
-    else:
-        pdb_path = results_dir / f"vec_norm_{label}.pdb"
-        write_bfactor_pdb(
-            ref_pdb=ref_pdb,
-            adjusted_avg_disp=adjusted_avg_disp,
-            out_pdb=pdb_path,
-        )
+    pdb_path = results_dir / f"vec_norm_{label}.pdb"
+    write_bfactor_pdb(
+        ref_pdb=ref_pdb,
+        adjusted_avg_disp=adjusted_avg_disp,
+        out_pdb=pdb_path,
+    )
 
     # ---------------------------------------------------- Summary stats --
     n_sig     = int((adjusted_avg_disp > 0).sum())
@@ -197,9 +189,8 @@ def main():
     parser.add_argument(
         "--ref-pdb", default=None,
         help=(
-            "Path to reference PDB for B-factor mapping "
-            "(closest-to-average structure). "
-            "Defaults to <dnemd-dir>/closest_to_average.pdb"
+            "Path to reference structure for B-factor mapping. "
+            "Defaults to <dnemd-dir>/analysis_reference.pdb"
         ),
     )
     parser.add_argument(
@@ -207,21 +198,25 @@ def main():
         help="Number of independent runs (default: n_runs from config)",
     )
     parser.add_argument(
-        "--start-ns", type=int, default=50,
-        help="First equilibrium time point to include in ns (default: 50)",
+        "--start-ns", type=int, default=None,
+        help="First equilibrium time point to include in ns (default: from config extract_ns_start)",
     )
     parser.add_argument(
-        "--end-ns", type=int, default=495,
-        help="Last equilibrium time point to include in ns (default: 495)",
+        "--end-ns", type=int, default=None,
+        help="Last equilibrium time point to include in ns (default: from config extract_ns_end)",
     )
     parser.add_argument(
-        "--interval-ns", type=int, default=5,
-        help="Interval between equilibrium time points in ns (default: 5)",
+        "--interval-ns", type=int, default=None,
+        help="Interval between equilibrium time points in ns (default: from config extract_ns_interval)",
     )
     args = parser.parse_args()
 
     # ---------------------------------------------------------------- Config --
     cfg = Config.from_yaml(args.config)
+
+    start_ns    = args.start_ns    if args.start_ns    is not None else cfg.extract_ns_start
+    end_ns      = args.end_ns      if args.end_ns      is not None else cfg.extract_ns_end
+    interval_ns = args.interval_ns if args.interval_ns is not None else cfg.extract_ns_interval
 
     # Resolve which time points to analyse
     if args.time_point is not None:
@@ -244,19 +239,45 @@ def main():
     ref_pdb = (
         Path(args.ref_pdb)
         if args.ref_pdb
-        else dnemd_base / "closest_to_average.pdb"
+        else dnemd_base / "analysis_reference.pdb"
     )
+
+    if not ref_pdb.exists():
+        logger.error(
+            f"\nReference structure missing: {ref_pdb}\n\n"
+            "Please provide a reference structure at the path above.\n"
+            "Any CA-containing structure with the correct number of residues works.\n\n"
+            "To calculate the closest structure to average:\n"
+            "  1. Extract only the equilibrated part of each production run\n"
+            "     (e.g. the last N ns after equilibration).\n"
+            "  2. Calculate the average position of each Cα across all frames.\n"
+            "  3. Calculate the RMSD of each frame with respect to the average structure.\n"
+            "  4. Pick the frame with the lowest RMSD — this is the closest-to-average.\n\n"
+            "Example using MDAnalysis:\n"
+            "  import MDAnalysis as mda\n"
+            "  import numpy as np\n"
+            "  from MDAnalysis.analysis import align\n\n"
+            "  u = mda.Universe('prod.tpr', 'prod.xtc')\n"
+            "  ca = u.select_atoms('name CA')\n"
+            "  positions = np.array([ca.positions.copy() for ts in u.trajectory])\n"
+            "  mean_pos  = positions.mean(axis=0)\n"
+            "  rmsd      = np.sqrt(((positions - mean_pos)**2).sum(axis=(1,2)) / len(ca))\n"
+            "  best_frame = int(rmsd.argmin())\n"
+            "  u.trajectory[best_frame]\n"
+            f"  ca.write('{ref_pdb}')\n"
+        )
+        sys.exit(1)
 
     n_runs      = args.runs if args.runs else cfg.n_runs
     runs        = range(1, n_runs + 1)
-    time_range_ns = range(args.start_ns, args.end_ns + 1, args.interval_ns)
+    time_range_ns = range(start_ns, end_ns + 1, interval_ns)
 
     logger.info(f"System      : {cfg.system_name}")
     logger.info(f"DNEMD base  : {dnemd_base}")
     logger.info(f"Results dir : {results_dir}")
     logger.info(f"Ref PDB     : {ref_pdb}")
     logger.info(f"Runs        : {list(runs)}")
-    logger.info(f"EQ range    : {args.start_ns}–{args.end_ns} ns every {args.interval_ns} ns")
+    logger.info(f"EQ range    : {start_ns}–{end_ns} ns every {interval_ns} ns")
     logger.info(f"Time points : {time_points} ps")
     logger.info(f"SE threshold: {cfg.se_threshold}")
 

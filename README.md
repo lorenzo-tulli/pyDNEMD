@@ -1,6 +1,6 @@
 # pyDNEMD
 
-A Python package for running and analysing **Dynamical Non-Equilibrium MD (D-NEMD)** simulations with GROMACS.
+A Python package for running and analysing **Dynamical Non-Equilibrium MD (D-NEMD)** simulations with GROMACS. A step-by-step guide using a Docker container is also available following the tutorial in pyDNEMD/workshop.ipynb.
 
 ## Installation
 

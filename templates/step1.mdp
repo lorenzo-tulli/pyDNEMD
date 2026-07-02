@@ -1,7 +1,5 @@
-;       User Asfo
-;       
 ;       Input file for initialization with restraints to heavy atoms and no pressure coupling
-;
+;       Example values used to obtein results in examples/outputs
 define                   = -DPOSRES 
 
 integrator            =  md

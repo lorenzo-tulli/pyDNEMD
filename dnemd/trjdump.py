@@ -46,7 +46,7 @@ class TrajectoryDumper:
         self.fit_group    = fit_group
         self.output_group = output_group
         self.center_group = center_group
-        self.trjdump_root = ensure_dir(sim_path / f"TRJDUMP_{leg}")
+        self.trjdump_root = Path(sim_path)
 
     # ------------------------------------------------------------------
     # Public interface
@@ -63,7 +63,10 @@ class TrajectoryDumper:
     # ------------------------------------------------------------------
 
     def _run_dir(self, run: int, ns: int) -> Path:
-        return self.sim_path / f"r{run}" / f"{ns}ns"
+        if self.leg == "EQ":
+            return self.sim_path / f"EQ_{run}" / "prod"
+        else:
+            return self.sim_path / f"{self.leg}_{run}" / f"{ns}ns"
 
     def _out_dir(self, run: int, ns: int) -> Path:
         return ensure_dir(
@@ -75,11 +78,11 @@ class TrajectoryDumper:
         run_dir = self._run_dir(run, ns)
 
         if self.leg == "EQ":
-            xtc = run_dir / f"r{run}.xtc"
-            tpr = run_dir / f"r{run}.tpr"
+            xtc = run_dir / "prod.xtc"
+            tpr = run_dir / "prod.tpr"
         else:
-            xtc = run_dir / f"r{run}-{ns}ns.xtc"
-            tpr = run_dir / "md.tpr"
+            xtc = run_dir / f"MD_{self.leg}.xtc"
+            tpr = run_dir / f"MD_{self.leg}.tpr"
 
         if not xtc.exists() or not tpr.exists():
             logger.warning(
@@ -116,7 +119,7 @@ class TrajectoryDumper:
                 [self.gmx, "trjconv",
                  "-f", str(xtc_raw), "-s", str(tpr),
                  "-o", str(xtc_center), "-center", "-n", ndx],
-                stdin_text=f"{self.center_group}\n{self.output_group}\n",
+                stdin_text=f"{self.center_group}\n0\n",
             )
 
         if not xtc_pbc.exists():
@@ -125,7 +128,7 @@ class TrajectoryDumper:
                 [self.gmx, "trjconv",
                  "-f", str(xtc_center), "-s", str(tpr),
                  "-o", str(xtc_pbc), "-pbc", "mol", "-n", ndx],
-                stdin_text=f"{self.output_group}\n",
+                stdin_text="0\n",
             )
 
         return xtc_pbc if xtc_pbc.exists() else None

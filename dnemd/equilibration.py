@@ -117,6 +117,7 @@ class EquilibrationPipeline:
                 top="topol.top",
                 out_tpr=f"{stage}.tpr",
                 ref_gro=str(prev_gro),
+                ndx="index.ndx",
                 cwd=stage_dir,
             )
             if not self.setup_only:
@@ -130,11 +131,12 @@ class EquilibrationPipeline:
 
         grompp(
             gmx=self.cfg.gmx,
-            mdp=str(self.mdp_dir / "prod.mdp"),
+            mdp=str(self.mdp_dir / "production.mdp"),
             gro=str(step4_gro),
             top="topol.top",
             out_tpr="prod.tpr",
             ref_gro=str(step4_gro),
+            ndx="index.ndx",
             cwd=prod_dir,
         )
         if not self.setup_only:

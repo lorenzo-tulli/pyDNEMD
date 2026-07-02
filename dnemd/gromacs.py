@@ -15,7 +15,8 @@ logger = get_logger("gromacs")
 # ---------------------------------------------------------------------------
 
 def grompp(gmx: str, mdp: str, gro: str, top: str, out_tpr: str,
-           ref_gro: str = None, maxwarn: int = 0, cwd: Path = None):
+           ref_gro: str = None, ndx: str = None, maxwarn: int = 0,
+           cwd: Path = None):
     cmd = [gmx, "grompp",
            "-f", mdp,
            "-c", gro,
@@ -24,6 +25,8 @@ def grompp(gmx: str, mdp: str, gro: str, top: str, out_tpr: str,
            "-maxwarn", str(maxwarn)]
     if ref_gro:
         cmd += ["-r", ref_gro]
+    if ndx:
+        cmd += ["-n", ndx]
     run(cmd, cwd=cwd)
 
 
