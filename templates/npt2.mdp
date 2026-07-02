@@ -1,17 +1,16 @@
 ;       User Asfo
-;       
-;       Input file for initialization with restraints to backbone atoms and pressure coupling
 ;
-define                   = -DPOSRES 
+;       Input file for final, fully unrestrained equilibration with pressure coupling
+;
 
 integrator            =  md
-dt                    =  0.002     ; fs 
-nsteps                =  1000000  ; -> total 2 ns.  
+dt                    =  0.002     ; fs
+nsteps                =  2500000  ; -> total 5 ns.
 nstcomm               =  250000  ;  equal to nstenergy
 nstxout-compressed    =  250000  ;  writing every 500 ps
 compressed-x-precision = 250000  ;  writing every 500 ps
 nstlog                =  250000  ;  writing every 500 ps
-nstenergy             =  250000  ;  writing every 500 ps  
+nstenergy             =  250000  ;  writing every 500 ps
 
 ;neighbor searching
 nstlist             =  20 ; until 40 for gpu
@@ -19,36 +18,33 @@ ns_type             =  grid
 cutoff-scheme       =  Verlet
 
 ;PME
-rlist               = 1.2   
+rlist               = 1.2
 coulombtype         = PME
-rcoulomb            = 1.2   
+rcoulomb            = 1.2
 fourierspacing      = 0.16
 pme_order           = 4
 vdwtype             = cut-off
-rvdw                = 1.2   
+rvdw                = 1.2
 DispCorr            = EnerPres
 
 ; temperature coupling is on in two groups
-Tcoupl              =  V-rescale 
+Tcoupl              =  V-rescale
 tc-grps             =  Protein_QFO  Water_and_ions
-tau_t               =    0.1               0.1     
-ref_t               =    310               310            
+tau_t               =    0.1               0.1
+ref_t               =    310               310
 
 ; Energy monitoring
 energygrps          =  System
 
 ; Isotropic pressure coupling is now on
-Pcoupl              =  C-rescale 
+Pcoupl              =  C-rescale
 Pcoupltype          =  isotropic
 tau_p               =  0.5
-compressibility     =  4.5e-5 
-ref_p               =  1.0    
-refcoord-scaling    =  com
+compressibility     =  4.5e-5
+ref_p               =  1.0
 
-; Generate velocites is on at 310 K.
+; Generate velocites is off, continuing from npt1.
 gen_vel             =  no
-gen_temp            =  310
-gen_seed            = 61531
 continuation        =  yes
 
 constraint_algorithm=lincs
