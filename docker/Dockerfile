@@ -72,5 +72,5 @@ CMD ["jupyter", "lab", \
      "--port=8888", \
      "--no-browser", \
      "--allow-root", \
-     "--notebook-dir=/workshop/notebook", \
+     "--notebook-dir=/", \
      "--ServerApp.token="]
