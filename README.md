@@ -20,6 +20,35 @@ pip install git+https://github.com/lorenzo-tulli/pyDNEMD.git
 - GROMACS (`gmx` or `gmx_mpi` on your `PATH`)
 - Python dependencies installed automatically: `numpy`, `pyyaml`, `MDAnalysis`, `matplotlib`
 
+### Optional: protein mutation perturbations
+
+The ligand-removal pipeline above needs nothing extra. If you also want to generate hybrid
+topologies for **mutation** perturbations (`dnemd-create-hybrid-topology`), you need
+[BioSimSpace](https://biosimspace.openbiosim.org/) in the same environment. BioSimSpace is
+conda-only (no PyPI package) and only supports Linux and macOS — install it *before* pyDNEMD,
+in the same environment:
+
+```bash
+conda install -n pyDNEMD -c openbiosim biosimspace
+pip install git+https://github.com/lorenzo-tulli/pyDNEMD.git
+```
+
+Installing pyDNEMD after BioSimSpace (not before) avoids pip's resolver trying to touch
+packages conda already manages. pyDNEMD's own dependencies (`numpy`, `MDAnalysis`,
+`matplotlib`, `pyyaml`) are near-certainly already satisfied by any recent BioSimSpace
+environment — worth a quick check afterwards:
+
+```bash
+python -c "import MDAnalysis; print(MDAnalysis.__version__)"  # should be >= 2.0
+```
+
+If `pip install` ever complains about those four packages specifically in a BioSimSpace
+environment, `pip install --no-deps git+https://github.com/lorenzo-tulli/pyDNEMD.git` is a
+safe escape hatch.
+
+If you only need the ligand-removal pipeline, skip this section entirely — BioSimSpace is
+never imported unless you actually run `dnemd-create-hybrid-topology`.
+
 ## Workflow overview
 
 1. **Equilibration** — run independent equilibrium replicates
