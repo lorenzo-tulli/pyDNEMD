@@ -62,6 +62,7 @@ After installation the following commands are available:
 
 | Command | Description |
 |---|---|
+| `dnemd-create-hybrid-topology` | Build a hybrid topology for mutation perturbations (requires BioSimSpace) |
 | `dnemd-equilibrium` | Run GROMACS equilibration pipeline |
 | `dnemd-create-ne-np` | Create NE/NP input files |
 | `dnemd-run-ne` | Run non-equilibrium simulations |
