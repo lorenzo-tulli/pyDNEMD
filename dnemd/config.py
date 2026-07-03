@@ -17,6 +17,12 @@ class Config:
     mdp_dir:     str = "templates"
     output_dir:  str = "output"
 
+    # Mutation perturbation: hybrid topology generation (dnemd-create-hybrid-topology)
+    wt_gro:          str = ""
+    wt_topology:     str = ""
+    mutant_gro:      str = ""
+    mutant_topology: str = ""
+
     # Equilibrium
     n_runs: int = 5
 

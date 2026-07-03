@@ -35,6 +35,7 @@ Homepage = "https://github.com/lorenzo-tulli/pyDNEMD"
 Repository = "https://github.com/lorenzo-tulli/pyDNEMD"
 
 [project.scripts]
+dnemd-create-hybrid-topology = "dnemd.cli.create_hybrid_topology:main"
 dnemd-equilibrium         = "dnemd.cli.run_equilibrium:main"
 dnemd-create-ne-np        = "dnemd.cli.create_NE_NP_files:main"
 dnemd-run-ne              = "dnemd.cli.run_ne_np:main_ne"
