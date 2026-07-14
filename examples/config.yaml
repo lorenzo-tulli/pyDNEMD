@@ -4,7 +4,15 @@
 # Example input files are provided in examples/inputs/.
 # =============================================================================
 
+# Which perturbation pipeline to use: ligand_removal or mutation.
+# Changes what dnemd-create-ne-np/dnemd-run-ne/dnemd-run-np do internally —
+# see the README's "Mutation perturbation quick start" for the mutation case.
+perturbation: ligand_removal
+
 # --- Input files -------------------------------------------------------------
+# For perturbation: mutation, point these at the output of
+# dnemd-create-hybrid-topology (<output_dir>/hybrid_topology/*.gro, *.top)
+# instead of a plain solvated system.
 input_gro: /absolute/path/to/solv_ions.gro
 topology:  /absolute/path/to/topol.top
 index_ndx: /absolute/path/to/index.ndx
@@ -15,11 +23,19 @@ system_name: SYSTEM
 # GROMACS executable use gmx_mpi on most HPC clusters, gmx locally
 gmx: gmx_mpi
 
-# MDP templates directory
-mdp_dir: /absolute/path/to/templates
+# MDP templates directory — templates/ligand_removal or templates/protein_mutation
+mdp_dir: /absolute/path/to/templates/ligand_removal
 
 # Output directory for all results
 output_dir: /absolute/path/to/output
+
+# --- Mutation perturbation only: dnemd-create-hybrid-topology ---------------
+# Ignored unless perturbation: mutation. Wild-type and mutant structure/
+# topology pairs to merge into a hybrid topology.
+# wt_gro:          /absolute/path/to/wt_solvated.gro
+# wt_topology:     /absolute/path/to/wt_topol.top
+# mutant_gro:      /absolute/path/to/mutant_solvated.gro
+# mutant_topology: /absolute/path/to/mutant_topol.top
 
 # --- Equilibrium simulation --------------------------------------------------
 n_runs: 2                  # number of independent replicates
