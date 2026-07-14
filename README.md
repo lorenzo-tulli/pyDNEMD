@@ -1,6 +1,6 @@
 # pyDNEMD
 
-A Python package for running and analysing **Dynamical Non-Equilibrium MD (D-NEMD)** simulations with GROMACS. A step-by-step guide using a Docker container is also available following the tutorial in pyDNEMD/workshop.ipynb.
+A Python package for running and analysing **Dynamical Non-Equilibrium MD (D-NEMD)** simulations with GROMACS. A step-by-step guide using a Docker container is also available following the tutorial in [pyDNEMD-workshop](https://github.com/lorenzo-tulli/pyDNEMD-workshop.git).
 
 ## Installation
 
@@ -45,6 +45,7 @@ All commands require a `--config` argument pointing to a YAML configuration file
 See `examples/config.yaml` for a template.
 
 ## Quick start
+Solvate your favourite Protein-ligand complex using gromacs, then:
 
 ```bash
 # Copy and edit the config template
