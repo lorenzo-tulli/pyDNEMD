@@ -2,8 +2,8 @@
 
 """
 Set up and optionally run the full GROMACS equilibration pipeline:
-  em -> step1 (NVT heavy) -> step2 (NVT CA) -> step3 (NPT CA)
-     -> step4 (NPT backbone) -> production
+  em -> nvt1 (heavy, 250 K) -> nvt2 (heavy, 310 K) -> npt1 (backbone)
+     -> npt2 (unrestrained) -> production
 
 Usage:
     python scripts/run_equilibrium.py --config examples/config.yaml
