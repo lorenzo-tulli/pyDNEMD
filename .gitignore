@@ -44,5 +44,5 @@ CLAUDE.md
 !examples/**/*.tpr
 \#*
 
-# Allow MDP templates to be tracked
-!templates/*.mdp
+# Allow MDP templates to be tracked, at any depth under templates/
+!templates/**/*.mdp

@@ -1,0 +1,26 @@
+integrator              = steep
+emtol                   = 1000.0
+nsteps                  = 50000
+nstlist                 = 10
+cutoff-scheme           = Verlet
+rlist                   = 1.2
+vdwtype                 = Cut-off
+vdw-modifier            = Force-switch
+rvdw_switch             = 1.0
+rvdw                    = 1.2
+coulombtype             = PME
+rcoulomb                = 1.2
+;
+constraints             = h-bonds
+constraint_algorithm    = LINCS
+
+; FREE ENERGY
+free-energy              = yes
+init-lambda              = 0
+delta-lambda             = 0
+sc-alpha                 = 0.3
+sc-sigma                 = 0.25
+sc-power                 = 1
+sc-coul                  = yes
+refcoord-scaling         = all
+nstdhdl                  = 0
