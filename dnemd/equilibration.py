@@ -7,8 +7,16 @@ from dnemd.utils import ensure_dir, get_logger, copy_file
 
 logger = get_logger("equilibration")
 
-POSRES_FC = {"step1": 10, "step2": 5, "step3": 2, "step4": 1}
-EQ_STAGES  = ["step1", "step2", "step3", "step4"]
+# stage -> (restraint group, force constant) or None for no restraint.
+# "heavy" reuses the pdb2gmx-generated posre.itp (all protein heavy atoms);
+# any other group is built via genrestr against the current index.ndx.
+RESTRAINT_SCHEDULE = {
+    "nvt1": ("heavy",    10),
+    "nvt2": ("heavy",    5),
+    "npt1": ("Backbone", 2),
+    "npt2": None,
+}
+EQ_STAGES = list(RESTRAINT_SCHEDULE)
 
 
 class EquilibrationPipeline:
@@ -35,10 +43,9 @@ class EquilibrationPipeline:
     # ------------------------------------------------------------------
 
     def run_all(self):
-        """Run the full pipeline: EM -> restraints -> step1-4 -> production."""
+        """Run the full pipeline: EM -> nvt1-npt2 (restrained) -> production."""
         logger.info(f"=== Run {self.run_id} -> {self.root} ===")
         self.run_em()
-        self.build_restraints()
         self.run_eq_stages()
         self.run_production()
         logger.info(f"Run {self.run_id} {'setup' if self.setup_only else 'complete'}.")
@@ -66,40 +73,44 @@ class EquilibrationPipeline:
         if not self.setup_only:
             mdrun(self.cfg.gmx, "em", cwd=self.em_dir)
 
-    def build_restraints(self):
-        """Generate posre_heavy.itp and posre_CA.itp."""
-        # Heavy-atom restraints
-        posre_src = self.em_dir / "posre.itp"
-        if not posre_src.exists():
-            posre_src = Path(self.cfg.topology).parent / "posre.itp"
+    def _build_stage_restraint(self, stage_dir: Path, prev_gro: Path, group: str, fc: int):
+        """
+        Write posre.itp into stage_dir, restraining `group` at force constant `fc`.
 
-        if posre_src.exists():
+        The topology's #ifdef POSRES block always includes a file literally
+        named posre.itp, so each restrained stage needs its own copy under
+        that exact name — reusing one shared file across stages is what
+        silently pinned every stage to the same unscaled restraint before.
+        """
+        if group == "heavy":
+            source = self.em_dir / "posre.itp"
+            if not source.exists():
+                logger.warning("posre.itp not found — heavy-atom restraints skipped.")
+                return
             sed_posres(
-                itp_in=str(posre_src),
-                itp_out=str(self.em_dir / "posre_heavy.itp"),
-                fc_value=str(POSRES_FC["step1"]),
+                itp_in=str(source),
+                itp_out=str(stage_dir / "posre.itp"),
+                fc_value=str(fc),
             )
-        else:
-            logger.warning("posre.itp not found — heavy-atom restraints skipped.")
+            return
 
-        # Cα restraints
-        gro = "em.gro" if not self.setup_only else "solv_ions.gro"
+        raw_itp = stage_dir / "posre_raw.itp"
         genrestr(
             gmx=self.cfg.gmx,
-            gro=gro,
+            gro=str(prev_gro),
             ndx="index.ndx",
-            out_itp="posre_CA_raw.itp",
-            group="CA",
-            cwd=self.em_dir,
+            out_itp=raw_itp.name,
+            group=group,
+            cwd=stage_dir,
         )
         sed_posres(
-            itp_in=str(self.em_dir / "posre_CA_raw.itp"),
-            itp_out=str(self.em_dir / "posre_CA.itp"),
-            fc_value=str(POSRES_FC["step2"]),
+            itp_in=str(raw_itp),
+            itp_out=str(stage_dir / "posre.itp"),
+            fc_value=str(fc),
         )
 
     def run_eq_stages(self):
-        """Run step1 through step4 sequentially."""
+        """Run nvt1 through npt2 sequentially, with per-stage position restraints."""
         for i, stage in enumerate(EQ_STAGES):
             stage_dir = ensure_dir(self.root / stage)
             self._copy_stage_inputs(stage_dir)
@@ -109,6 +120,11 @@ class EquilibrationPipeline:
                 if i == 0
                 else self.root / EQ_STAGES[i - 1] / f"{EQ_STAGES[i - 1]}.gro"
             )
+
+            restraint = RESTRAINT_SCHEDULE[stage]
+            if restraint:
+                group, fc = restraint
+                self._build_stage_restraint(stage_dir, prev_gro, group, fc)
 
             grompp(
                 gmx=self.cfg.gmx,
@@ -125,17 +141,18 @@ class EquilibrationPipeline:
 
     def run_production(self):
         """Set up and run the unrestrained production simulation."""
-        prod_dir  = ensure_dir(self.root / "prod")
-        step4_gro = self.root / "step4" / "step4.gro"
+        prod_dir   = ensure_dir(self.root / "prod")
+        last_stage = EQ_STAGES[-1]
+        last_gro   = self.root / last_stage / f"{last_stage}.gro"
         self._copy_stage_inputs(prod_dir)
 
         grompp(
             gmx=self.cfg.gmx,
             mdp=str(self.mdp_dir / "production.mdp"),
-            gro=str(step4_gro),
+            gro=str(last_gro),
             top="topol.top",
             out_tpr="prod.tpr",
-            ref_gro=str(step4_gro),
+            ref_gro=str(last_gro),
             ndx="index.ndx",
             cwd=prod_dir,
         )
