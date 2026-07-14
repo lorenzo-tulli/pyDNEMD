@@ -8,7 +8,14 @@
 4. Create GROMACS input files for Null-Perturbation (NP) simulations
    (original topology, velocities reassigned from Maxwell-Boltzmann distribution).
 
-Files the user must place in output/perturbed_topology/ before running:
+With `perturbation: mutation` in the config, this dispatches to MutationSetup
+instead: both legs use the hybrid topology from dnemd-create-hybrid-topology,
+and only the NE leg's switch phase (phase 1 of 2) is built here — its
+response phase is built by dnemd-run-ne once the switch phase has actually
+run. See the README's "Mutation perturbation quick start" section.
+
+Files the user must place in output/perturbed_topology/ before running
+(ligand_removal mode only):
 
     extraction_index.ndx  — copy of your production index.ndx with an extra group
                              called 'Protein_Water_and_ions' (protein + water + ions,
@@ -55,6 +62,7 @@ import argparse
 from pathlib import Path
 from dnemd.config import Config
 from dnemd.ne_np_setup import NESetup
+from dnemd.mutation_setup import MutationSetup
 from dnemd.utils import get_logger, run
 
 logger = get_logger("create_NE_NP_files")
@@ -97,7 +105,7 @@ def main():
     args = parser.parse_args()
 
     cfg     = Config.from_yaml(args.config)
-    setup   = NESetup(cfg)
+    setup   = MutationSetup(cfg) if cfg.perturbation == "mutation" else NESetup(cfg)
     run_ids = [args.run] if args.run else list(range(1, cfg.n_runs + 1))
 
     start_ps     = args.start     if args.start     is not None else cfg.extract_start_ps
@@ -106,7 +114,9 @@ def main():
     if not setup.check_required_files():
         return
 
-    if not args.skip_topology_test:
+    # Mutation mode has no separate "perturbed topology" to test — the
+    # hybrid topology is already validated by dnemd-create-hybrid-topology.
+    if cfg.perturbation != "mutation" and not args.skip_topology_test:
         setup.test_topology()
 
     if args.end is not None:
