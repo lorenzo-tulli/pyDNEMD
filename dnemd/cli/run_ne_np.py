@@ -5,6 +5,11 @@ Run a single NE or NP GROMACS simulation for one (run, time) combination.
 The task ID maps to a (run_id, time_ns) pair using the same time points
 defined by extract_start_ps / extract_frequency_ps / extract_end_ps in config.
 
+With `perturbation: mutation`, the NE leg runs as two chained mdrun calls
+(switch phase, then response phase built from the switch phase's
+checkpoint) instead of one — see _run_mutation_ne(). The NP leg is
+unaffected: single grompp+mdrun either way.
+
 Usage (SLURM array):
     dnemd-run-ne --config config.yaml --task-id $SLURM_ARRAY_TASK_ID
     dnemd-run-np --config config.yaml --task-id $SLURM_ARRAY_TASK_ID
@@ -18,7 +23,7 @@ import sys
 from pathlib import Path
 
 from dnemd.config import Config
-from dnemd.gromacs import mdrun
+from dnemd.gromacs import grompp, mdrun
 from dnemd.utils import get_logger
 
 logger = get_logger("run_ne_np")
@@ -33,19 +38,55 @@ def build_time_points(start_ps: int, frequency_ps: int, end_ps: int) -> list[int
 
 
 def run_simulation(leg: str, cfg: Config, run_id: int, time_ns: int):
-    tpr_dir = (
-        Path(cfg.output_dir)
-        / f"{leg}_{run_id}"
-        / f"{time_ns}ns"
-    )
-    tpr = tpr_dir / f"MD_{leg}.tpr"
+    tpr_dir = Path(cfg.output_dir) / f"{leg}_{run_id}" / f"{time_ns}ns"
 
+    if cfg.perturbation == "mutation" and leg == "NE":
+        _run_mutation_ne(cfg, tpr_dir)
+        return
+
+    tpr = tpr_dir / f"MD_{leg}.tpr"
     if not tpr.exists():
         logger.error(f"TPR not found: {tpr}")
         sys.exit(1)
 
     logger.info(f"Running {leg} | run {run_id} | {time_ns} ns -> {tpr_dir}")
     mdrun(cfg.gmx, f"MD_{leg}", cwd=tpr_dir)
+
+
+def _run_mutation_ne(cfg: Config, tpr_dir: Path):
+    """
+    Two-phase mutation NE: run the switch phase, then build the response
+    phase's .tpr from the switch phase's checkpoint — this can't be built
+    ahead of time in dnemd-create-ne-np, since the response phase needs
+    the switch phase's final state, which doesn't exist until the switch
+    phase has actually run. The response phase is deliberately named
+    MD_NE (not MD_NE_ph2 or similar) so dnemd-extract's hardcoded
+    MD_{leg}.xtc/.tpr lookup finds it unmodified.
+    """
+    switch_tpr = tpr_dir / "MD_NE_switch.tpr"
+    if not switch_tpr.exists():
+        logger.error(f"Switch-phase TPR not found: {switch_tpr}")
+        sys.exit(1)
+
+    logger.info(f"Running NE switch phase -> {tpr_dir}")
+    mdrun(cfg.gmx, "MD_NE_switch", cwd=tpr_dir)
+
+    logger.info("Building NE response phase from the switch-phase checkpoint...")
+    grompp(
+        gmx=cfg.gmx,
+        mdp="switch_ph2.mdp",
+        gro="MD_NE_switch.gro",
+        top=str(Path(cfg.topology)),
+        out_tpr="MD_NE.tpr",
+        ref_gro="MD_NE_switch.gro",
+        ndx=str(cfg.index_ndx),
+        cpt="MD_NE_switch.cpt",
+        maxwarn=2,
+        cwd=tpr_dir,
+    )
+
+    logger.info("Running NE response phase...")
+    mdrun(cfg.gmx, "MD_NE", cwd=tpr_dir)
 
 
 def make_parser(leg: str) -> argparse.ArgumentParser:

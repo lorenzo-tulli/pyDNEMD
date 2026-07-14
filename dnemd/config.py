@@ -17,6 +17,11 @@ class Config:
     mdp_dir:     str = "templates"
     output_dir:  str = "output"
 
+    # Which perturbation pipeline to use for NE/NP setup and execution.
+    # "ligand_removal" -> NESetup, single grompp+mdrun per leg.
+    # "mutation"       -> MutationSetup, NE leg runs as two chained phases.
+    perturbation: str = "ligand_removal"
+
     # Mutation perturbation: hybrid topology generation (dnemd-create-hybrid-topology)
     wt_gro:          str = ""
     wt_topology:     str = ""
@@ -53,6 +58,10 @@ class Config:
 
     def validate(self):
         errors = []
+        if self.perturbation not in ("ligand_removal", "mutation"):
+            errors.append(
+                f"  'perturbation' must be 'ligand_removal' or 'mutation', got '{self.perturbation}'"
+            )
         for attr, label in [
             ("input_gro", "input_gro"),
             ("topology",  "topology"),

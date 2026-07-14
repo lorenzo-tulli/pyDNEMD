@@ -15,7 +15,7 @@ logger = get_logger("gromacs")
 # ---------------------------------------------------------------------------
 
 def grompp(gmx: str, mdp: str, gro: str, top: str, out_tpr: str,
-           ref_gro: str = None, ndx: str = None, maxwarn: int = 0,
+           ref_gro: str = None, ndx: str = None, cpt: str = None, maxwarn: int = 0,
            cwd: Path = None):
     cmd = [gmx, "grompp",
            "-f", mdp,
@@ -27,6 +27,11 @@ def grompp(gmx: str, mdp: str, gro: str, top: str, out_tpr: str,
         cmd += ["-r", ref_gro]
     if ndx:
         cmd += ["-n", ndx]
+    if cpt:
+        # Continuation state (thermostat/barostat integrator variables, not
+        # just coordinates) from a previous mdrun — used to chain the
+        # mutation NE leg's switch phase into its response phase.
+        cmd += ["-t", cpt]
     run(cmd, cwd=cwd)
 
 

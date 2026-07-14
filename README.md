@@ -101,6 +101,41 @@ dnemd-extract --config my_config.yaml --all
 dnemd-analyse-dnemd --config my_config.yaml
 ```
 
+## Mutation perturbation quick start
+
+The steps above default to `perturbation: ligand_removal`. For a mutation perturbation,
+set `perturbation: mutation` in your config, along with `wt_gro`/`wt_topology`/
+`mutant_gro`/`mutant_topology` and `mdp_dir: templates/protein_mutation` (requires
+BioSimSpace — see "Optional: protein mutation perturbations" above). There's one extra
+step first, and `dnemd-create-ne-np`/`dnemd-run-ne` behave differently under the hood
+(the NE leg runs as two chained simulations — a fast switch, then the response phase —
+instead of one), but the commands themselves are the same:
+
+```bash
+cp examples/config.yaml my_mutation_config.yaml
+# edit: perturbation: mutation, wt_gro/wt_topology, mutant_gro/mutant_topology,
+#       mdp_dir: templates/protein_mutation
+
+# 0. Build the hybrid topology (mutation-only step)
+dnemd-create-hybrid-topology --config my_mutation_config.yaml
+# then point input_gro/topology in my_mutation_config.yaml at the .gro/.top
+# files it wrote to <output_dir>/hybrid_topology/
+
+# 1-6. Same as the ligand-removal workflow above
+dnemd-equilibrium --config my_mutation_config.yaml
+dnemd-analyse-equilibrium --config my_mutation_config.yaml
+dnemd-create-ne-np --config my_mutation_config.yaml --start 50000 --frequency 5000
+dnemd-run-ne --config my_mutation_config.yaml
+dnemd-run-np --config my_mutation_config.yaml
+dnemd-extract --config my_mutation_config.yaml --all
+dnemd-analyse-dnemd --config my_mutation_config.yaml
+```
+
+`dnemd-run-ne` runs the switch phase, then automatically builds and runs the response
+phase from the switch phase's checkpoint — nothing extra to invoke. `dnemd-extract`/
+`dnemd-analyse-dnemd` don't need to know which mode was used; they only ever look at the
+final NE/NP trajectories, which come out under the same file names in both modes.
+
 ## Python API
 
 If you want to embed this pipeline inside a larger Python workflow, add custom logic between steps, or automate things programmatically, you could follow this usage example.
